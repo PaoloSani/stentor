@@ -24,6 +24,8 @@ struct StentorApp: App {
             }
             CommandGroup(replacing: .saveItem) {
                 Button("Export Enhanced…") { project.export() }.keyboardShortcut("e").disabled(project.enhanced == nil)
+                Button("Export Speech Regions…") { project.exportRegions() }
+                    .keyboardShortcut("e", modifiers: [.command, .shift]).disabled(project.enhanced == nil || project.regions.isEmpty)
             }
             CommandGroup(replacing: .undoRedo) {
                 Button("Undo") { project.undo() }.keyboardShortcut("z")

@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Export each speech region as its own WAV (numbered, named after its start time) plus a CSV of start/end times; whole-file export stays the default (Settings › Export, or File › Export Speech Regions… ⇧⌘E).
+
 ## Stentor 0.1.0 — first release
 
 Native macOS app for voice restoration, built on the open-source [Sidon](https://github.com/sarulab-speech/Sidon) model.

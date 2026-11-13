@@ -24,7 +24,8 @@ Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the 
 - **Editable regions** — click to add, drag edges, hover the top of an edge for ✕, right-click to re-render, loop or delete a single region. After the first run only changed regions are processed again.
 - **A/B comparison** with a level-matched original, waveform and spectrogram views, seamless looping, zoom and pan.
 - **Fast and private** — Core ML on the Apple GPU, nothing leaves your computer. On an M1 (8 GB): ~3–5× real time, about 1 GB of memory.
-- Dark / light / auto theme, detailed hover help, adjustable icon size, WAV export (16/24-bit, 32-bit float; 48 kHz or source rate).
+- Dark / light / auto theme, detailed hover help, adjustable icon size.
+- WAV export (16/24-bit, 32-bit float; 48 kHz or source rate): the whole file, or each speech region as its own file plus a CSV of start/end times (`⇧⌘E`).
 
 ## Download and install
 

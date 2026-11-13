@@ -7,6 +7,7 @@ enum ViewMode: String, CaseIterable { case waveform = "Wave", spectrogram = "Spe
 enum Source: String { case original = "A", enhanced = "B" }
 enum ExportRate: String { case model, source }
 enum ExportFormat: String { case pcm16, pcm24, float32 }
+enum ExportScope: String { case wholeFile, regions }
 
 @MainActor
 final class Project: ObservableObject {
@@ -42,6 +43,9 @@ final class Project: ObservableObject {
     // export options (persisted)
     @Published var exportRate: ExportRate = ExportRate(rawValue: UserDefaults.standard.string(forKey: "exportRate") ?? "") ?? .model {
         didSet { UserDefaults.standard.set(exportRate.rawValue, forKey: "exportRate") }
+    }
+    @Published var exportScope: ExportScope = ExportScope(rawValue: UserDefaults.standard.string(forKey: "exportScope") ?? "") ?? .wholeFile {
+        didSet { UserDefaults.standard.set(exportScope.rawValue, forKey: "exportScope") }
     }
     @Published var exportFormat: ExportFormat = ExportFormat(rawValue: UserDefaults.standard.string(forKey: "exportFormat") ?? "") ?? .pcm24 {
         didSet { UserDefaults.standard.set(exportFormat.rawValue, forKey: "exportFormat") }
@@ -440,7 +444,20 @@ final class Project: ObservableObject {
 
     func cancel() { cancelFlag.cancelled = true }
 
-    func export() {
+    /// Export according to Settings › Export (whole file by default).
+    func export() { exportScope == .regions ? exportRegions() : exportWholeFile() }
+
+    /// The enhanced signal at the chosen export rate (48 kHz, or resampled to the source rate).
+    private func exportSignal(_ enhanced: [Float], _ audio: LoadedAudio) throws -> (samples: [Float], rate: Double) {
+        guard exportRate == .source, audio.sourceRate != 48_000 else { return (enhanced, 48_000) }
+        let rate = audio.sourceRate
+        var samples = try AudioIO.resample(enhanced, from: 48_000, to: rate)
+        let n = Int((Double(audio.wav16k.count) / 16_000 * rate).rounded()) // exact original length
+        samples = Array(samples.prefix(n)) + [Float](repeating: 0, count: max(0, n - samples.count))
+        return (samples, rate)
+    }
+
+    func exportWholeFile() {
         guard let enhanced, let audio else { return }
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.wav]
@@ -448,17 +465,48 @@ final class Project: ObservableObject {
         panel.directoryURL = audio.url.deletingLastPathComponent()
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
-            var samples = enhanced, rate = 48_000.0
-            if exportRate == .source, audio.sourceRate != 48_000 {
-                samples = try AudioIO.resample(enhanced, from: 48_000, to: audio.sourceRate)
-                rate = audio.sourceRate
-                // keep the exact original length
-                let n = Int((Double(audio.wav16k.count) / 16_000 * rate).rounded())
-                samples = Array(samples.prefix(n)) + [Float](repeating: 0, count: max(0, n - samples.count))
-            }
+            let (samples, rate) = try exportSignal(enhanced, audio)
             try AudioIO.writeWav(samples, sampleRate: rate, format: exportFormat, to: url)
             status = "Exported \(url.lastPathComponent)"
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    /// One WAV per green region, numbered and named after its start time, plus a CSV of the times
+    /// so the clips can be placed back on a DAW timeline.
+    func exportRegions() {
+        guard let enhanced, let audio, !regions.isEmpty else { return }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.prompt = "Export Here"
+        panel.message = "Choose a folder for the \(regions.count) speech region\(regions.count == 1 ? "" : "s")"
+        panel.directoryURL = audio.url.deletingLastPathComponent()
+        guard panel.runModal() == .OK, let dir = panel.url else { return }
+        do {
+            let n = try writeRegionFiles(to: dir)
+            status = "Exported \(n) region\(n == 1 ? "" : "s") to \(dir.lastPathComponent)"
+        } catch { errorMessage = error.localizedDescription }
+    }
+
+    @discardableResult
+    func writeRegionFiles(to dir: URL) throws -> Int {
+        guard let enhanced, let audio else { return 0 }
+        do {
+            let (samples, rate) = try exportSignal(enhanced, audio)
+            let stem = audio.url.deletingPathExtension().lastPathComponent
+            var csv = "file,index,start_s,end_s,duration_s\n"
+            for (k, r) in regions.enumerated() {
+                let a = max(0, Int((r.start * rate).rounded())), b = min(samples.count, Int((r.end * rate).rounded()))
+                guard b > a else { continue }
+                let m = Int(r.start) / 60, sec = r.start - Double(m * 60)
+                let name = String(format: "%@_enhanced_%02d_%dm%05.2fs.wav", stem, k + 1, m, sec)
+                try AudioIO.writeWav(Array(samples[a..<b]), sampleRate: rate, format: exportFormat, to: dir.appendingPathComponent(name))
+                csv += String(format: "\"%@\",%d,%.3f,%.3f,%.3f\n", name, k + 1, r.start, r.end, r.length)
+            }
+            try csv.write(to: dir.appendingPathComponent("\(stem)_regions.csv"), atomically: true, encoding: .utf8)
+            return regions.count
+        }
     }
 
     // MARK: - display helpers

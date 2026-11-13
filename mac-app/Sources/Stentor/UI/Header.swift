@@ -249,6 +249,10 @@ struct SettingsPanel: View {
                 }
             }
             Section("Export") {
+                Picker("Export", selection: $project.exportScope) {
+                    Text("Whole file (same length as the original)").tag(ExportScope.wholeFile)
+                    Text("Speech regions, one file each").tag(ExportScope.regions)
+                }
                 Picker("Sample rate", selection: $project.exportRate) {
                     Text("48 kHz (model output)").tag(ExportRate.model)
                     Text("Same as source").tag(ExportRate.source)

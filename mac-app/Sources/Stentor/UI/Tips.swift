@@ -81,8 +81,8 @@ enum Tips {
         hint: "When nothing changed, the button re-renders everything from scratch.")
     static let export = TipInfo(
         id: "export", title: "Export",
-        body: "Saves the enhanced audio as a mono WAV with exactly the same length as the original, so it lines up in your DAW. Sample rate and bit depth are set in Settings (default 48 kHz, 24-bit).",
-        shortcuts: [("⌘ E", "export")])
+        body: "Saves the enhanced audio as a mono WAV with exactly the same length as the original, so it lines up in your DAW. Sample rate, bit depth and whether to export the whole file or each speech region as its own file are set in Settings (default: whole file, 48 kHz, 24-bit).",
+        shortcuts: [("⌘ E", "export"), ("⇧⌘ E", "speech regions, one file each")])
     static let overview = TipInfo(
         id: "overview", title: "Overview",
         body: "The whole file with its green regions; the frame is the part shown above. Click or drag to jump there.")

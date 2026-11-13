@@ -11,6 +11,16 @@ import Foundation
 enum SelfTest {
     static func runIfRequested() {
         let args = CommandLine.arguments
+        if args.count >= 4, args[1] == "--export-regions" {
+            MainActor.assumeIsolated {
+                let p = Project(preload: false)
+                try! p.loadSync(URL(fileURLWithPath: args[2]), enhanceWith: try! SidonModel())
+                if args.contains("source-rate") { p.exportRate = .source }
+                let n = try! p.writeRegionFiles(to: URL(fileURLWithPath: args[3]))
+                print("wrote \(n) region files")
+            }
+            exit(0)
+        }
         if args.count >= 2, args[1] == "--check-updates" {
             MainActor.assumeIsolated {
                 let u = UpdateChecker()
