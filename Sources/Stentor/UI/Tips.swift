@@ -120,8 +120,11 @@ final class TipCenter: ObservableObject {
 
     var enabled: Bool { UserDefaults.standard.object(forKey: "detailedTooltips") as? Bool ?? true }
 
+    /// True while a modal card (model download, about) covers the window: no tips from what's underneath.
+    @Published var suppressed = false { didSet { if suppressed { hide() } } }
+
     func hover(_ info: TipInfo, at p: CGPoint) {
-        guard enabled else { hide(); return }
+        guard enabled, !suppressed else { hide(); return }
         if current == info { point = p; return }
         if pendingID == info.id { point = p; return }
         pending?.cancel()
@@ -176,7 +179,7 @@ struct TipOverlay: View {
 
     var body: some View {
         GeometryReader { geo in
-            if let info = tips.current {
+            if let info = tips.current, !tips.suppressed {
                 let w: CGFloat = 290
                 let above = tips.point.y > geo.size.height * 0.55
                 let x = min(max(8, tips.point.x - w / 2), geo.size.width - w - 8)

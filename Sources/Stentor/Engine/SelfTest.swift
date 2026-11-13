@@ -38,6 +38,22 @@ enum SelfTest {
             }
             exit(0)
         }
+        if args.count >= 2, args[1] == "--tips" {
+            MainActor.assumeIsolated {
+                UserDefaults.standard.set(true, forKey: "detailedTooltips")
+                @MainActor func probe(_ suppressed: Bool) -> Bool {
+                    let t = TipCenter()
+                    t.suppressed = suppressed
+                    t.hover(Tips.enhance, at: .zero)
+                    RunLoop.main.run(until: Date().addingTimeInterval(0.9))
+                    return t.current != nil
+                }
+                let shownNormally = probe(false), shownUnderModal = probe(true)
+                let t = TipCenter(); t.show(Tips.enhance, at: .zero); t.suppressed = true
+                print("tip shown normally: \(shownNormally) · under modal card: \(shownUnderModal) · open tip hidden when card appears: \(t.current == nil)")
+            }
+            exit(0)
+        }
         if args.count >= 2, args[1] == "--check-updates" {
             MainActor.assumeIsolated {
                 let u = UpdateChecker()
@@ -115,6 +131,7 @@ enum SelfTest {
         }
         if opts.contains("select") { p.selected = p.regions.first?.id }
         if opts.contains("setup") { p.needsModels = true }
+        if let t = opts.first(where: { $0.hasPrefix("tour=") }), let n = Int(t.dropFirst(5)) { p.tourStep = n }
         p.editorWidth = 1180
         p.requestSpectrogram(sync: true)
         p.player.transport.time = p.visibleStart + p.visibleDuration * 0.4

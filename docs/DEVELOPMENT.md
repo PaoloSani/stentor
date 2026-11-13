@@ -52,6 +52,7 @@ Sources/Stentor/
     Header.swift         wordmark, about card, settings panel
     Theme.swift          adaptive colours (dark / light / auto)
     Tips.swift           detailed hover help
+    Tour.swift           guided tour: anchors on UI parts, spotlight overlay, step cards
     Visuals.swift        waveform peaks and visible-window spectrogram
     Player.swift         AVAudioEngine playback with seamless looping
 Resources/               app icon (+ make_icon.swift) and the demo recording
@@ -71,7 +72,8 @@ $B --incremental in.wav            # per-region re-rendering leaves untouched re
 $B --export-regions in.wav outdir/ # one WAV per region + CSV (add source-rate for the input sample rate)
 $B --install-models                # run the model installer (STENTOR_MODELS_URL / STENTOR_MODELS_DEST override)
 $B --check-updates                 # query the latest release (STENTOR_VERSION_OVERRIDE / STENTOR_UPDATE_API override)
-$B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25 [setup|about|toast]   # render the UI to PNG
+$B --tips                          # tooltips are suppressed under modal cards
+$B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25 [setup|about|toast|tour=N]   # render the UI to PNG
 ```
 
 ## Packaging

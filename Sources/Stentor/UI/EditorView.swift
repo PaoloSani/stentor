@@ -27,6 +27,13 @@ struct EditorView: View {
                 if interactive { InteractionView(project: project, hover: hover, tips: tips, origin: geo.frame(in: .named("root")).origin) }
             }
             .frame(width: geo.size.width, height: geo.size.height)
+            .overlay(alignment: .top) {
+                VStack(spacing: 0) {
+                    Color.clear.frame(height: Theme.rulerHeight).tourAnchor(.ruler)
+                    Color.clear.tourAnchor(.editor)
+                }
+                .allowsHitTesting(false)
+            }
             .onAppear { project.editorWidth = geo.size.width }
             .onChange(of: geo.size.width) { _, w in project.editorWidth = w }
         }
@@ -250,7 +257,15 @@ final class EditorEventView: NSView {
         return h.id
     }
 
-    override func mouseMoved(with e: NSEvent) { MainActor.assumeIsolated { updateHover(convert(e.locationInWindow, from: nil)) } }
+    /// The editor sits under the model-download card while the model is missing: ignore it then.
+    @MainActor private var blocked: Bool { (project?.needsModels ?? false) || project?.tourStep != nil }
+
+    override func mouseMoved(with e: NSEvent) {
+        MainActor.assumeIsolated {
+            if blocked { hover?.bar = nil; hover?.overX = false; NSCursor.arrow.set(); return }
+            updateHover(convert(e.locationInWindow, from: nil))
+        }
+    }
     override func mouseExited(with e: NSEvent) {
         MainActor.assumeIsolated { hover?.bar = nil; hover?.overX = false; NSCursor.arrow.set(); tips?.hide(); tipID = nil }
     }
@@ -281,6 +296,7 @@ final class EditorEventView: NSView {
 
     override func mouseDown(with e: NSEvent) {
         MainActor.assumeIsolated {
+            guard !blocked else { return }
             window?.makeFirstResponder(self)
             tips?.hide(); tipID = nil
             guard let p = project else { return }
@@ -307,6 +323,7 @@ final class EditorEventView: NSView {
 
     override func mouseDragged(with e: NSEvent) {
         MainActor.assumeIsolated {
+            guard !blocked else { return }
             guard let p = project else { return }
             let pt = convert(e.locationInWindow, from: nil)
             let t = time(pt.x)
@@ -329,6 +346,7 @@ final class EditorEventView: NSView {
 
     override func mouseUp(with e: NSEvent) {
         MainActor.assumeIsolated {
+            guard !blocked else { return }
             guard let p = project else { return }
             let pt = convert(e.locationInWindow, from: nil)
             let t = time(pt.x)
@@ -354,6 +372,7 @@ final class EditorEventView: NSView {
     // Right-click menu: regenerate / loop / delete a region, or add one.
     override func menu(for event: NSEvent) -> NSMenu? {
         MainActor.assumeIsolated {
+            guard !blocked else { return nil }
             guard let p = project, p.audio != nil else { return nil }
             let pt = convert(event.locationInWindow, from: nil)
             let t = time(pt.x)
@@ -377,6 +396,7 @@ final class EditorEventView: NSView {
 
     override func scrollWheel(with e: NSEvent) {
         MainActor.assumeIsolated {
+            guard !blocked else { return }
             guard let p = project, p.duration > 0 else { return }
             let t = time(convert(e.locationInWindow, from: nil).x)
             let dx = e.scrollingDeltaX, dy = e.scrollingDeltaY
@@ -393,6 +413,7 @@ final class EditorEventView: NSView {
 
     override func magnify(with e: NSEvent) {
         MainActor.assumeIsolated {
+            guard !blocked else { return }
             guard let p = project else { return }
             p.zoom(by: 1 + Double(e.magnification), around: time(convert(e.locationInWindow, from: nil).x))
         }

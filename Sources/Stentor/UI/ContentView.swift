@@ -23,7 +23,10 @@ struct ContentView: View {
                 return true
             }
             .frame(minWidth: 880, minHeight: 460)
-            .onAppear { project.openDemoOnFirstLaunch() }
+            .onAppear {
+                project.openDemoOnFirstLaunch()
+                project.startTourIfFirstTime()
+            }
             .ignoresSafeArea(.container, edges: .top)
     }
 }
@@ -36,6 +39,8 @@ struct MainView: View {
     @ObservedObject var window: WindowState
     var interactive = true
     @AppStorage("appearance") private var appearance = AppearanceMode.auto.rawValue
+
+    private var modal: Bool { project.needsModels || project.tourStep != nil || window.showAbout }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -57,7 +62,13 @@ struct MainView: View {
         .coordinateSpace(name: "root")
         .overlay { if project.needsModels { ModelSetupView(project: project, installer: project.installer) } }
         .overlay { if window.showAbout { AboutCard(window: window) } }
+        .overlayPreferenceValue(TourAnchorKey.self) { anchors in TourOverlay(project: project, anchors: anchors) }
         .overlay(TipOverlay(tips: tips))
+        // no tooltips while a card covers the window (model download, guided tour, about)
+        .onAppear { tips.suppressed = modal }
+        .onChange(of: project.needsModels) { _, _ in tips.suppressed = modal }
+        .onChange(of: project.tourStep) { _, _ in tips.suppressed = modal }
+        .onChange(of: window.showAbout) { _, _ in tips.suppressed = modal }
         .environmentObject(tips)
         .preferredColorScheme(AppearanceMode(rawValue: appearance)?.colorScheme)
     }

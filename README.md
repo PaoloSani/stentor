@@ -69,7 +69,7 @@ download its DMG and run the installer: it replaces the installed app and keeps 
 | Listen | `Space` play/pause · `B` original ↔ enhanced · `S` waveform ↔ spectrogram |
 | Edit history | `⌘Z` / `⇧⌘Z` |
 
-Hover anything for a detailed explanation (Settings › Help › Detailed tooltips).
+A guided tour runs after the first model download (replay it from **Help › Show Tour**). Hover anything for a detailed explanation (turn it off in Settings › Help › Detailed tooltips).
 
 ## Build from source
 

@@ -65,6 +65,7 @@ struct HeaderBar: View {
             Button { window.showAbout = true } label: { Wordmark(size: 25) }
                 .buttonStyle(.plain)
                 .tip(Tips.logo)
+                .tourAnchor(.logo)
                 .padding(.leading, 82) // clear of the window's traffic lights
             Spacer(minLength: 12)
             Text(project.modelStatus).font(.system(size: 10.5)).foregroundStyle(Theme.muted).lineLimit(1)
@@ -75,6 +76,7 @@ struct HeaderBar: View {
             }
             .buttonStyle(.plain)
             .tip(Tips.gear)
+            .tourAnchor(.gear)
             .popover(isPresented: $window.showSettings, arrowEdge: .bottom) {
                 SettingsPanel(project: project).frame(width: 360)
             }
@@ -111,6 +113,7 @@ struct HeaderBar: View {
         .onHover { fileHover.on = $0 }
         .frame(maxWidth: 520)
         .tip(Tips.fileInfo)
+        .tourAnchor(.file)
     }
 
     private func meta(_ a: LoadedAudio) -> String {

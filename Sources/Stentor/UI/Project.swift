@@ -363,6 +363,25 @@ final class Project: ObservableObject {
         needsModels = false
         status = "Voice model installed"
         preloadModel()
+        startTourIfFirstTime()
+    }
+
+    // MARK: guided tour
+
+    /// Index into `Tour.steps` while the tour is showing.
+    @Published var tourStep: Int?
+
+    func startTour() { tourStep = 0 }
+
+    func endTour() {
+        tourStep = nil
+        UserDefaults.standard.set(true, forKey: "tourShown")
+    }
+
+    /// After the model is in place (never on top of the download card), once.
+    func startTourIfFirstTime() {
+        guard !needsModels, tourStep == nil, !UserDefaults.standard.bool(forKey: "tourShown") else { return }
+        startTour()
     }
 
     /// Point Stentor at a folder that already contains the .mlpackage files.

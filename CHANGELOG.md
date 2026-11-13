@@ -1,5 +1,10 @@
 # Changelog
 
+## Stentor 0.3.1
+
+- First launch is calmer: the model download screen shows no tooltips, and nothing underneath reacts to the mouse.
+- New guided tour after the model is installed: it highlights each part of the app in turn (file, speech regions, ruler, playback, A/B, view, Enhance, Export, settings) and shows what the hover tooltips look like and where to turn them off. Replay it from Help › Show Tour.
+
 ## Stentor 0.3.0
 
 - Much smaller download: the DMG no longer bundles the voice model. On first launch Stentor downloads it (about 930 MB, once) with progress, resume and SHA-256 verification; updates keep it. **Locate Models…** uses a folder that already has the models.

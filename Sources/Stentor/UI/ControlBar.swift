@@ -99,6 +99,7 @@ struct ControlIsland: View {
                     Button { project.toggleLoop() } label: { Image(systemName: "repeat") }
                         .buttonStyle(RoundStyle(active: project.loopEnabled, tint: Theme.loop, size: 28 * s)).tip(Tips.loop)
                 }
+                .tourAnchor(.transport)
 
                 VStack(alignment: .leading, spacing: 0) {
                     Text(timecode(transport.time, step: 0.01)).font(.system(size: 14 * s, weight: .semibold, design: .monospaced))
@@ -112,10 +113,12 @@ struct ControlIsland: View {
                 Toggle2(options: [(Source.original, "A"), (Source.enhanced, "B")], value: project.source, scale: s,
                         disabled: { $0 == .enhanced && project.enhanced == nil }) { project.setSource($0) }
                     .tip(Tips.ab)
+                    .tourAnchor(.ab)
                 Toggle2(options: [(ViewMode.waveform, "WAVE"), (ViewMode.spectrogram, "SPEC")], value: project.viewMode, scale: s) {
                     project.setViewMode($0)
                 }
                 .tip(Tips.view)
+                .tourAnchor(.view)
                 divider(s)
 
                 if project.processing {
@@ -128,6 +131,7 @@ struct ControlIsland: View {
                     }
                     .buttonStyle(PillStyle(scale: s))
                     .tip(Tips.cancel)
+                    .tourAnchor(.enhance)
                 } else {
                     Button { project.enhancedStale || project.enhanced == nil ? project.enhance() : project.enhanceAll() } label: {
                         HStack(spacing: 5 * s) {
@@ -141,11 +145,13 @@ struct ControlIsland: View {
                     .buttonStyle(PillStyle(active: true, scale: s))
                     .disabled(project.audio == nil || project.regions.isEmpty)
                     .tip(Tips.enhance)
+                    .tourAnchor(.enhance)
                 }
                 Button { project.export() } label: { Image(systemName: "square.and.arrow.down") }
                     .buttonStyle(PillStyle(scale: s))
                     .disabled(project.enhanced == nil || project.processing)
                     .tip(Tips.export)
+                    .tourAnchor(.export)
             }
             .padding(.horizontal, 12 * s).padding(.vertical, 8 * s)
             .background(RoundedRectangle(cornerRadius: 18 * s).fill(Theme.island))

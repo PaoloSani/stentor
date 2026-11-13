@@ -63,6 +63,8 @@ struct StentorApp: App {
                 Button("Check for Updates…") { NSWorkspace.shared.open(UpdateChecker.releasesPage) }
                 Button("Report an Issue on GitHub…") { NSWorkspace.shared.open(Links.githubIssues) }
                 Divider()
+                Button("Show Tour") { project.startTour() }
+                Divider()
                 Button("Who was Stentor?") { NSWorkspace.shared.open(Links.wikipedia) }
                 Button("Sidon on GitHub") { NSWorkspace.shared.open(Links.sidon) }
             }
