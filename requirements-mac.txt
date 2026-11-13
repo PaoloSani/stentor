@@ -1,0 +1,7 @@
+# Apple Silicon (M1/M2/M3) runtime for the speech_enhancer package
+torch>=2.8
+torchaudio>=2.8
+soundfile>=0.12
+numpy>=1.26
+silero-vad>=6.0
+coremltools>=8.0  # Core ML GPU backend (export + inference)

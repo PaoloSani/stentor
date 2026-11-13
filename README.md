@@ -77,3 +77,43 @@ By default, files whose enhanced output already exists are skipped. Use `--force
 to reprocess everything:
 
     python enhance_audio/enhance_folder.py /path/to/input_folder --force
+## macOS / Apple Silicon (`speech_enhancer` package)
+
+Local, CPU-only pipeline for long recordings, with VAD-based segmentation that can be
+edited before enhancement (the basis of the upcoming Mac app).
+
+    /opt/homebrew/bin/python3.12 -m venv .venv
+    .venv/bin/pip install -r requirements-mac.txt
+
+Weights: `sidon_weights/feature_extractor_cpu.pt` and `decoder_cpu.pt` from
+https://huggingface.co/sarulab-speech/sidon-v0.1 (override the folder with `SIDON_WEIGHTS_DIR`).
+
+    # 1. VAD segmentation -> editable JSON of cut points (cuts always fall in pauses)
+    .venv/bin/python -m speech_enhancer segment recording.m4a
+    # 2. enhancement -> recording_enhanced.wav (48 kHz mono, 24-bit)
+    .venv/bin/python -m speech_enhancer enhance recording.m4a --segments recording.segments.json
+
+### Fast backend: Core ML on the Apple GPU (recommended)
+
+The TorchScript release only runs on CPU. Convert it once to eager PyTorch and then to
+Core ML (about 2 minutes, ~2 GB of generated files, git-ignored):
+
+    .venv/bin/python tools/convert_torchscript.py   # -> speech_enhancer/_generated + sidon_weights/eager
+    .venv/bin/python tools/export_coreml.py         # -> sidon_weights/coreml/*.mlpackage
+
+`enhance` then picks Core ML automatically (`--backend torchscript` forces the CPU path,
+`--precision float16` trades a tiny bit of fidelity for speed and memory).
+Measured on an M1 (8 GB), 5-minute file:
+
+| Backend | Speed | Peak memory | Fidelity vs. reference |
+|---|---|---|---|
+| TorchScript, CPU | 1.6-1.8x real time | 5.1 GB | reference |
+| Core ML float32, GPU | 4.2x real time | 1.8 GB | identical (>84 dB SNR) |
+| Core ML float16, GPU | 5.2x real time | 1.2 GB | ~28 dB SNR |
+
+The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
+
+Any format readable by libsndfile works, plus m4a/aac/mp4 via macOS `afconvert`.
+Segments are processed one at a time with 0.5 s of context per side and joined with a
+40 ms crossfade centred in the pause; output is streamed to disk, so memory does not grow
+with file length.

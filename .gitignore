@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated from the TorchScript release by tools/convert_torchscript.py and tools/export_coreml.py
+sidon_weights/eager/
+sidon_weights/coreml/
