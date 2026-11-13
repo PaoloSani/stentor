@@ -80,8 +80,8 @@ The DMG holds `Install Stentor.pkg`, a guided installer (Welcome, License, Desti
 
 ```bash
 SIGN_APP="Developer ID Application: …" SIGN_PKG="Developer ID Installer: …" ./package.sh
-xcrun notarytool submit build/Stentor-0.1.0.dmg --keychain-profile <profile> --wait
-xcrun stapler staple build/Stentor-0.1.0.dmg
+xcrun notarytool submit build/Stentor-<version>.dmg --keychain-profile <profile> --wait
+xcrun stapler staple build/Stentor-<version>.dmg
 ```
 
 Unsigned builds work, but macOS asks users to confirm the first launch of the installer (right-click › Open).

@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## Stentor 0.2.0
+
+**Update:** download `Stentor-0.2.0.dmg` and run the installer — it replaces 0.1.0 and keeps your settings.
+
+### New
 - Export each speech region as its own WAV (numbered, named after its start time) plus a CSV of start/end times; whole-file export stays the default (Settings › Export, or File › Export Speech Regions… ⇧⌘E).
 
 ## Stentor 0.1.0 — first release

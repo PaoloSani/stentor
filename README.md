@@ -29,11 +29,11 @@ Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the 
 
 ## Download and install
 
-**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/speech-enhancer/releases/latest)** — `Stentor-0.1.0.dmg` (≈ 900 MB, the voice model is included).
+**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/speech-enhancer/releases/latest)** — `Stentor-0.2.0.dmg` (≈ 900 MB, the voice model is included).
 
 Requirements: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or newer, ~2 GB free disk space.
 
-1. Open `Stentor-0.1.0.dmg`.
+1. Open the downloaded `Stentor-<version>.dmg`.
 2. Double-click **Install Stentor** and follow the steps: Welcome → License → Destination → Install (your Mac password is needed to write to Applications) → Summary.
 3. Open **Stentor** from Applications. A public-domain demo recording opens on first launch.
 
@@ -85,10 +85,10 @@ tools/download_weights.sh
 # 4. The app
 cd mac-app
 ./build_app.sh                 # build/Stentor.app (reads models from ../sidon_weights/coreml)
-./package.sh                   # build/Stentor-0.1.0.dmg with the guided installer and bundled models
+./package.sh                   # build/Stentor-<version>.dmg with the guided installer and bundled models
 ```
 
-Publishing a release (maintainers): `gh release create v0.1.0 mac-app/build/Stentor-0.1.0.dmg --title "Stentor 0.1.0" --notes-file CHANGELOG.md`.
+Publishing a release (maintainers): `gh release create v<version> mac-app/build/Stentor-<version>.dmg --title "Stentor <version>" --notes-file …` (version from `mac-app/VERSION`).
 To ship signed builds, set `SIGN_APP` / `SIGN_PKG` to your Developer ID identities when running `package.sh`, then notarize the DMG (`xcrun notarytool submit … --wait` and `xcrun stapler staple`). Details in [mac-app/README.md](mac-app/README.md).
 
 ## How it works
