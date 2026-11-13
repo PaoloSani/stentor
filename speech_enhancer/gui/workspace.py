@@ -26,7 +26,7 @@ from ..pipeline import Cancelled, Enhancer
 from ..segmentation import Segmentation, SegmentationParams, _speech_regions, segment_audio, segment_from_probs
 
 AUDIO_EXTENSIONS = {".wav", ".flac", ".mp3", ".ogg", ".m4a", ".aac", ".aif", ".aiff", ".caf", ".mp4"}
-CACHE_ROOT = Path.home() / "Library" / "Caches" / "SidonEnhancer"
+CACHE_ROOT = Path.home() / "Library" / "Caches" / "Stentor"
 PEAKS_PER_SECOND = 100
 MAX_PEAKS = 400_000
 LISTEN_PEAK = 0.9  # the "original" listening copy is peak-normalised like the model input
@@ -34,7 +34,7 @@ LISTEN_PEAK = 0.9  # the "original" listening copy is peak-normalised like the m
 
 @dataclass
 class Settings:
-    output_dir: str = str(Path.home() / "Desktop" / "Sidon Output")
+    output_dir: str = str(Path.home() / "Desktop" / "Stentor Output")
     backend: str = "auto"
     precision: str = "float32"
     mode: str = "speech"  # speech | full

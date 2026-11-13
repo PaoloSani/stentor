@@ -155,7 +155,7 @@ def run(host: str = "127.0.0.1", port: int = 8765, open_browser: bool = True, fi
         ws.add_paths(files)
     app = create_app(ws)
     url = f"http://{host}:{port}/"
-    print(f"Sidon Enhancer GUI -> {url}  (Ctrl+C to quit)")
+    print(f"Stentor GUI -> {url}  (Ctrl+C to quit)")
     if open_browser:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     app.run(host=host, port=port, threaded=True, use_reloader=False)

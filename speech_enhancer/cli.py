@@ -102,7 +102,7 @@ def cmd_gui(args) -> None:
 
 
 def main(argv=None) -> None:
-    p = argparse.ArgumentParser(prog="speech_enhancer", description="Sidon speech enhancement for long recordings")
+    p = argparse.ArgumentParser(prog="stentor", description="Stentor: Sidon speech enhancement for long recordings")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     def seg_opts(sp):
