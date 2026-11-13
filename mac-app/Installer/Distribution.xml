@@ -6,7 +6,7 @@
   <conclusion file="conclusion.html" mime-type="text/html"/>
   <background file="background.tiff" alignment="bottomleft" scaling="none"/>
   <background-darkAqua file="background.tiff" alignment="bottomleft" scaling="none"/>
-  <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
+  <options customize="never" require-scripts="true" hostArchitectures="arm64"/>
   <domains enable_localSystem="true"/>
   <volume-check>
     <allowed-os-versions><os-version min="14.0"/></allowed-os-versions>

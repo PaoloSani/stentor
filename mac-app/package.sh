@@ -2,14 +2,14 @@
 # Build the distributable "Stentor-<version>.dmg": a disk image with a guided installer
 # (Welcome -> License -> Destination -> Install -> Summary), plugin-style.
 #
-#   ./package.sh            # -> build/Stentor-0.1.0.dmg
+#   ./package.sh            # -> build/Stentor-<VERSION>.dmg (version from the VERSION file)
 #
 # Needs the Core ML models in ../sidon_weights/coreml (tools/export_coreml.py).
 # Unsigned build: see README for Gatekeeper; set SIGN_APP / SIGN_PKG to Developer ID identities to sign.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-$(cat VERSION)}"
 ID="local.stentor"
 OUT=build
 STAGE="$OUT/pkgroot"
@@ -30,7 +30,9 @@ export COPYFILE_DISABLE=1
 pkgbuild --analyze --root "$STAGE" "$OUT/component.plist" >/dev/null
 # Always install into /Applications (not "relocate" onto another copy found on disk)
 plutil -replace 0.BundleIsRelocatable -bool NO "$OUT/component.plist"
+# --scripts: preinstall removes the previous Stentor.app, so reinstalling a newer DMG is a clean upgrade
 pkgbuild --root "$STAGE" --component-plist "$OUT/component.plist" --identifier "$ID" --version "$VERSION" \
+         --scripts Installer/scripts \
          --install-location / "$OUT/Stentor-component.pkg" >/dev/null
 
 echo "==> Guided installer"

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Clean upgrade: remove the previous Stentor.app so no files from older versions are left inside
+# the bundle. User settings (~/Library/Preferences) and the model cache (~/Library/Application
+# Support/Stentor) are not touched.
+TARGET="${3%/}"
+rm -rf "$TARGET/Applications/Stentor.app"
+exit 0

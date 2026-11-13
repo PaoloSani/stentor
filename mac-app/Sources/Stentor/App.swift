@@ -58,6 +58,7 @@ struct StentorApp: App {
             }
             CommandGroup(replacing: .help) {
                 Button("Send Feedback…") { NSWorkspace.shared.open(Links.feedback) }
+                Button("Check for Updates…") { NSWorkspace.shared.open(UpdateChecker.releasesPage) }
                 Button("Report an Issue on GitHub…") { NSWorkspace.shared.open(Links.githubIssues) }
                 Divider()
                 Button("Who was Stentor?") { NSWorkspace.shared.open(Links.wikipedia) }

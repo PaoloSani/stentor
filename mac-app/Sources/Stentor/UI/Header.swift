@@ -124,6 +124,7 @@ struct HeaderBar: View {
 struct AboutCard: View {
     @ObservedObject var window: WindowState
     @StateObject private var hoverLogo = Flag()
+    @StateObject private var updates = UpdateChecker()
 
     var body: some View {
         ZStack {
@@ -180,7 +181,7 @@ struct AboutCard: View {
                 .buttonStyle(.plain)
                 .help("Ideas, bugs or anything else — opens a short form in your browser")
 
-                Text("Version \(Links.appVersion)").font(.system(size: 10, design: .monospaced)).foregroundStyle(Theme.muted.opacity(0.7))
+                UpdateRow(updates: updates)
             }
             .padding(.horizontal, 34).padding(.vertical, 26)
             .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card))

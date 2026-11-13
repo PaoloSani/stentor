@@ -41,6 +41,11 @@ Requirements: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or newer, ~2 GB f
 
 The first launch prepares the model for your GPU (about 10 s, once).
 
+### Updating
+
+Click the **STENTOR** logo › **Check for Updates** (or Help › Check for Updates…). When a newer version exists,
+download its DMG and run the installer: it replaces the installed app and keeps your settings and model cache.
+
 ## Using Stentor
 
 1. **Open** a recording — drop it on the window, press `⌘O`, or click the file name in the header.

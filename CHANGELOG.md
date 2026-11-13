@@ -14,6 +14,7 @@ Requires an Apple Silicon Mac (M1 or later) and macOS 14 or newer.
 - Processes only the detected speech: green, editable regions; the output keeps the original length.
 - Per-region and incremental re-rendering, A/B comparison, waveform and spectrogram views, looping.
 - Dark / light / auto theme, detailed hover help, adjustable icon size, WAV export (16/24-bit, 32-bit float).
+- Check for Updates in the about card (click the logo); reinstalling a newer DMG upgrades cleanly.
 - Guided installer; a one-minute public-domain demo (J.F. Kennedy at Rice University, 1962) opens on first launch.
 
 ### Known limitations

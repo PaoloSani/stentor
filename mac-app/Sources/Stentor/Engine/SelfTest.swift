@@ -11,6 +11,16 @@ import Foundation
 enum SelfTest {
     static func runIfRequested() {
         let args = CommandLine.arguments
+        if args.count >= 2, args[1] == "--check-updates" {
+            MainActor.assumeIsolated {
+                let u = UpdateChecker()
+                u.check()
+                let end = Date().addingTimeInterval(20)
+                while u.state == .checking && Date() < end { RunLoop.main.run(until: Date().addingTimeInterval(0.1)) }
+                print("running \(UpdateChecker.currentVersion): \(u.state)")
+            }
+            exit(0)
+        }
         if args.count >= 3, args[1] == "--incremental" { MainActor.assumeIsolated { incremental(args[2]) }; exit(0) }
         if args.count >= 3, args[1] == "--logic" { MainActor.assumeIsolated { logic(args[2]) }; exit(0) }
         if args.count >= 4, args[1] == "--snapshot" { MainActor.assumeIsolated { snapshot(args) }; exit(0) }

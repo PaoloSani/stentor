@@ -67,8 +67,13 @@ $B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25   # 
 ## Packaging
 
 ```bash
-./package.sh                   # build/Stentor-<version>.dmg (VERSION=0.1.0 by default)
+./package.sh                   # build/Stentor-<version>.dmg; the version comes from mac-app/VERSION
 ```
+
+Release checklist: bump `VERSION`, run `./package.sh`, add a CHANGELOG entry, then
+`gh release create v<version> build/Stentor-<version>.dmg --notes-file …`. Installed apps find it through
+**Check for Updates** (GitHub `releases/latest`, so the repository must be public). The installer's `preinstall`
+script removes the previous `Stentor.app`, so upgrades are clean.
 
 The DMG holds `Install Stentor.pkg`, a guided installer (Welcome, License, Destination, Install, Summary) that puts
 `Stentor.app` with its models into /Applications. Signed builds:

@@ -5,6 +5,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+VERSION="$(cat VERSION)"   # single source of the app version
 swift build -c release
 APP="build/Stentor.app"
 rm -rf "$APP"
@@ -40,6 +41,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
+
+plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"
+plutil -replace CFBundleVersion -string "$VERSION" "$APP/Contents/Info.plist"
 
 if [[ "${1:-}" == "--with-models" ]]; then
   mkdir -p "$APP/Contents/Resources/Models"
