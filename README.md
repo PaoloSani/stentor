@@ -29,7 +29,7 @@ Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the 
 
 ## Download and install
 
-**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/speech-enhancer/releases/latest)** — `Stentor-0.2.0.dmg` (≈ 900 MB, the voice model is included).
+**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/stentor/releases/latest)** — `Stentor-0.2.0.dmg` (≈ 900 MB, the voice model is included).
 
 Requirements: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or newer, ~2 GB free disk space.
 
@@ -68,85 +68,49 @@ Hover anything for a detailed explanation (Settings › Help › Detailed toolti
 
 ## Build from source
 
-Everything builds with the Xcode **Command Line Tools** — full Xcode is not required.
+Builds with the Xcode **Command Line Tools** (`xcode-select --install`); full Xcode is not required.
 
 ```bash
-# 1. Python environment (Apple Silicon)
-/opt/homebrew/bin/python3.12 -m venv .venv
-.venv/bin/pip install -r requirements-mac.txt
-
-# 2. Sidon weights (TorchScript release, MIT, ~1 GB) from Hugging Face, checksum-verified
-tools/download_weights.sh
-
-# 3. TorchScript -> eager PyTorch -> Core ML (about 2 minutes, ~2 GB, git-ignored)
-.venv/bin/python tools/convert_torchscript.py
-.venv/bin/python tools/export_coreml.py
-
-# 4. The app
-cd mac-app
-./build_app.sh                 # build/Stentor.app (reads models from ../sidon_weights/coreml)
-./package.sh                   # build/Stentor-<version>.dmg with the guided installer and bundled models
+git clone https://github.com/PaoloSani/stentor.git && cd stentor
+scripts/fetch_models.sh        # Core ML models (~930 MB) into ./Models, checksum-verified
+./build_app.sh                 # build/Stentor.app
+open build/Stentor.app
+./package.sh                   # build/Stentor-<version>.dmg: guided installer with the models bundled
 ```
 
-Publishing a release (maintainers): `gh release create v<version> mac-app/build/Stentor-<version>.dmg --title "Stentor <version>" --notes-file …` (version from `mac-app/VERSION`).
-To ship signed builds, set `SIGN_APP` / `SIGN_PKG` to your Developer ID identities when running `package.sh`, then notarize the DMG (`xcrun notarytool submit … --wait` and `xcrun stapler staple`). Details in [mac-app/README.md](mac-app/README.md).
+Developer notes (code layout, headless tests, packaging, signing, releases): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## How it works
 
 1. **Load** any format (WAV, AIFF, FLAC, MP3, M4A…), mix to mono, resample to 16 kHz, 50 Hz high-pass, peak-normalise.
 2. **Detect speech** and turn it into editable regions.
-3. **Restore each region**: Kaldi fbank features → w2v-BERT 2.0 feature predictor (Sidon, 8 layers + LoRA) → HiFi-GAN vocoder at 48 kHz. Long regions are split at the quietest point and joined with crossfades; every model call uses one of two fixed lengths so GPU memory stays flat.
+3. **Restore each region**: Kaldi fbank features → w2v-BERT 2.0 feature predictor (Sidon, 8 layers + LoRA) → HiFi-GAN vocoder at 48 kHz, all on the GPU with Core ML. Long regions are split at the quietest point and joined with crossfades; every model call uses one of two fixed lengths so GPU memory stays flat.
 4. **Assemble** a full-length 48 kHz file: restored regions with short fades, silence elsewhere.
 
-The released Sidon TorchScript graphs only run on CPU. `tools/convert_torchscript.py` transcribes them into bit-exact eager PyTorch modules (no network, no `transformers`), and `tools/export_coreml.py` exports Core ML packages that run on the GPU. The Swift engine is validated against the Python reference (features within 3·10⁻⁴, audio at 81 dB SNR).
-
-## Python engine
-
-The `speech_enhancer` package is the reference implementation and a command-line tool.
-
-```bash
-.venv/bin/python -m speech_enhancer segment recording.m4a      # VAD -> editable recording.segments.json
-.venv/bin/python -m speech_enhancer enhance recording.m4a      # -> recording_enhanced.wav (speech regions only)
-.venv/bin/python -m speech_enhancer enhance recording.m4a --mode full --backend coreml --precision float16
-.venv/bin/python -m speech_enhancer gui                        # local web GUI at http://127.0.0.1:8765
-```
+The models are derived from the official Sidon TorchScript release: the CPU-only graphs are transcribed into bit-exact
+PyTorch modules and exported to Core ML. That conversion, the Python reference pipeline the app is validated
+against (features within 3·10⁻⁴, audio at 81 dB SNR), a CLI and the experiments live in a separate project,
+**stentor-engine**.
 
 | Backend (M1, 8 GB, 5-min file) | Speed | Peak memory | Fidelity |
 |---|---|---|---|
 | TorchScript, CPU | 1.6–1.8× real time | 5.1 GB | reference |
-| Core ML float32, GPU | 4.2× real time | 1.8 GB | identical (>84 dB SNR) |
+| **Core ML float32, GPU (Stentor)** | 4.2× real time | 1.8 GB | identical (>84 dB SNR) |
 | Core ML float16, GPU | 5.2× real time | 1.2 GB | ~28 dB SNR |
 
 The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
 
-### Batch processing on NVIDIA GPUs (Linux)
-
-`enhance_folder.py` and `processor.py` (the original scripts this project started from) enhance whole folders with
-the CUDA TorchScript weights (`--device`, `--chunk-seconds`, `--num-workers`, `--batch-size`, `--skip-errors`,
-`--force`; output goes to a sibling `audio_48kHz_enh` folder).
-
-```bash
-tools/download_weights.sh --cuda
-uv venv envs/db_sidon --python 3.12 && source envs/db_sidon/bin/activate
-uv pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match
-uv pip install -r sidon_requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match --no-build-isolation
-```
-
-Requires an NVIDIA driver with CUDA 12.8; `torch` must be installed before `flash-attn` builds. These scripts expect to live in an
-`enhance_audio/` package (weights at `enhance_audio/sidon_weights/`).
-
 ## Repository layout
 
 ```
-mac-app/              Stentor, the native macOS app (SwiftUI + Core ML)
-  Sources/Stentor/    Engine/ (fbank, Core ML model, regions, audio I/O) and UI/
-  Installer/          guided installer pages, license and artwork
-  Resources/          app icon and the public-domain demo recording
-speech_enhancer/      Python reference engine, CLI and web GUI
-tools/                weight download and TorchScript -> eager PyTorch -> Core ML conversion
-sidon_weights/        model weights (downloaded, git-ignored), plus generated eager/ and coreml/
-docs/                 images for this README
-processor.py, enhance_folder.py   original CUDA batch scripts
+Sources/Stentor/      the app: Engine/ (audio I/O, fbank, Core ML model, regions) and UI/ (SwiftUI)
+Resources/            app icon (+ generator) and the public-domain demo recording
+Installer/            guided installer pages, license, artwork, preinstall script
+scripts/              fetch_models.sh
+build_app.sh          builds build/Stentor.app
+package.sh            builds the DMG with the guided installer
+VERSION               app version (Info.plist and package)
+docs/                 developer guide and README images
 CHANGELOG.md          release notes
 ```
 

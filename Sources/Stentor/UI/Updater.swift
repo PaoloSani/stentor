@@ -10,8 +10,8 @@ final class UpdateChecker: ObservableObject {
         case idle, checking, upToDate(String), available(version: String, page: URL, dmg: URL?), failed(String)
     }
 
-    static let latestAPI = URL(string: "https://api.github.com/repos/PaoloSani/speech-enhancer/releases/latest")!
-    static let releasesPage = URL(string: "https://github.com/PaoloSani/speech-enhancer/releases/latest")!
+    static let latestAPI = URL(string: "https://api.github.com/repos/PaoloSani/stentor/releases/latest")!
+    static let releasesPage = URL(string: "https://github.com/PaoloSani/stentor/releases/latest")!
 
     @Published private(set) var state: State = .idle
 

@@ -7,7 +7,7 @@ enum Links {
     /// Public form (Tally) for feedback without a GitHub account. Paste the form's share link here;
     /// while it is empty, "Send Feedback" falls back to GitHub issues.
     static let feedbackForm = ""
-    static let githubIssues = URL(string: "https://github.com/PaoloSani/speech-enhancer/issues/new")!
+    static let githubIssues = URL(string: "https://github.com/PaoloSani/stentor/issues/new")!
 
     static var appVersion: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"

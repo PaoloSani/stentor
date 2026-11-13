@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Build "Stentor.app" with SwiftPM (no Xcode needed).
-#   ./build_app.sh                 app only; models are found in ../sidon_weights/coreml (dev)
+#   ./build_app.sh                 app only; models are read from ./Models (scripts/fetch_models.sh)
 #   ./build_app.sh --with-models   also copy the float32 Core ML packages into the bundle (standalone)
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -48,7 +48,8 @@ plutil -replace CFBundleVersion -string "$VERSION" "$APP/Contents/Info.plist"
 if [[ "${1:-}" == "--with-models" ]]; then
   mkdir -p "$APP/Contents/Resources/Models"
   for m in feature_extractor_float32 decoder_float32; do
-    cp -R "../sidon_weights/coreml/$m.mlpackage" "$APP/Contents/Resources/Models/"
+    [[ -d "Models/$m.mlpackage" ]] || { echo "Missing Models/$m.mlpackage: run scripts/fetch_models.sh" >&2; exit 1; }
+    cp -R "Models/$m.mlpackage" "$APP/Contents/Resources/Models/"
   done
 fi
 

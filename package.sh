@@ -4,7 +4,7 @@
 #
 #   ./package.sh            # -> build/Stentor-<VERSION>.dmg (version from the VERSION file)
 #
-# Needs the Core ML models in ../sidon_weights/coreml (tools/export_coreml.py).
+# Needs the Core ML models in ./Models (scripts/fetch_models.sh, or `stentor export coreml` from stentor-engine).
 # Unsigned build: see README for Gatekeeper; set SIGN_APP / SIGN_PKG to Developer ID identities to sign.
 set -euo pipefail
 cd "$(dirname "$0")"

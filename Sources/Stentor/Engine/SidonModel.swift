@@ -41,11 +41,15 @@ final class SidonModel {
         if let custom = UserDefaults.standard.string(forKey: "modelsFolder") { dirs.append(URL(fileURLWithPath: custom)) }
         if let res = Bundle.main.resourceURL { dirs.append(res.appendingPathComponent("Models")) }
         dirs.append(appSupport.appendingPathComponent("Models"))
-        // development: <repo>/sidon_weights/coreml next to the built app or the executable
+        // stentor-engine's export folder (`stentor export coreml`)
+        let engine = ProcessInfo.processInfo.environment["STENTOR_WEIGHTS_DIR"].map { URL(fileURLWithPath: $0) }
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".cache/stentor/weights")
+        dirs.append(engine.appendingPathComponent("coreml"))
+        // development: <repo>/Models (scripts/fetch_models.sh) next to the built app or the executable
         var p = Bundle.main.bundleURL
         for _ in 0..<5 {
             p = p.deletingLastPathComponent()
-            dirs.append(p.appendingPathComponent("sidon_weights/coreml"))
+            dirs.append(p.appendingPathComponent("Models"))
         }
         return dirs
     }

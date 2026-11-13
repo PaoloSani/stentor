@@ -1,17 +1,19 @@
 # Stentor for macOS — developer guide
 
-SwiftUI + Core ML app. For what Stentor does, downloads and usage, see the [main README](../README.md).
+SwiftUI + Core ML app. For what Stentor does, downloads and usage, see the [README](../README.md).
 
 ## Prerequisites
 
 - Apple Silicon Mac, macOS 14+, Xcode **Command Line Tools** (`xcode-select --install`) — full Xcode is not needed.
-- Core ML models exported from the repository root:
+- The Core ML models in `./Models`:
 
 ```bash
-tools/download_weights.sh
-.venv/bin/python tools/convert_torchscript.py
-.venv/bin/python tools/export_coreml.py      # -> sidon_weights/coreml/*.mlpackage
+scripts/fetch_models.sh          # release asset "models-1", ~930 MB, SHA-256 verified
 ```
+
+  To regenerate them (or try other precisions), use stentor-engine: `stentor weights download`,
+  then `stentor export coreml`; the app also finds models in its export folder
+  (`$STENTOR_WEIGHTS_DIR/coreml`, default `~/.cache/stentor/weights/coreml`).
 
 Without Xcode the SwiftUI macro plug-ins are unavailable, so the code avoids `@State` and `@Observable`
 (it uses `@StateObject` / `ObservableObject` instead).
@@ -19,13 +21,13 @@ Without Xcode the SwiftUI macro plug-ins are unavailable, so the code avoids `@S
 ## Build and run
 
 ```bash
-./build_app.sh                 # build/Stentor.app; models are read from ../sidon_weights/coreml
+./build_app.sh                 # build/Stentor.app; models are read from ./Models
 ./build_app.sh --with-models   # standalone bundle with the float32 models in Contents/Resources/Models
 open build/Stentor.app
 ```
 
 Models are looked up in `$SIDON_MODELS_DIR`, `Contents/Resources/Models`,
-`~/Library/Application Support/Stentor/Models` and `../sidon_weights/coreml`; they are compiled on first use and
+`~/Library/Application Support/Stentor/Models`, the stentor-engine export folder and `./Models`; they are compiled on first use and
 cached in `~/Library/Application Support/Stentor/Compiled`.
 
 ## Code layout
@@ -35,7 +37,7 @@ Sources/Stentor/
   App.swift              app, menus and keyboard shortcuts
   Engine/
     AudioIO.swift        loading (AVFoundation), resampling, high-pass, WAV writing
-    Fbank.swift          Kaldi fbank features (Accelerate), port of speech_enhancer/features.py
+    Fbank.swift          Kaldi fbank features (Accelerate), port of the stentor-engine fbank
     SidonModel.swift     Core ML feature predictor + windowed vocoder, CPU fallback
     Regions.swift        speech detection and the region renderer (fixed-length model calls)
     SelfTest.swift       headless checks and UI snapshots
@@ -49,6 +51,7 @@ Sources/Stentor/
     Visuals.swift        waveform peaks and visible-window spectrogram
     Player.swift         AVAudioEngine playback with seamless looping
 Resources/               app icon (+ make_icon.swift) and the demo recording
+scripts/fetch_models.sh  downloads the Core ML models
 Installer/               installer pages, license, artwork (+ make_art.swift), Distribution.xml
 ```
 
@@ -67,11 +70,11 @@ $B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25   # 
 ## Packaging
 
 ```bash
-./package.sh                   # build/Stentor-<version>.dmg; the version comes from mac-app/VERSION
+./package.sh                   # build/Stentor-<version>.dmg; the version comes from VERSION
 ```
 
 Release checklist: bump `VERSION`, run `./package.sh`, add a CHANGELOG entry, then
-`gh release create v<version> build/Stentor-<version>.dmg --notes-file …`. Installed apps find it through
+`gh release create v<version> build/Stentor-<version>.dmg --title "Stentor <version>" --notes-file …`. Installed apps find it through
 **Check for Updates** (GitHub `releases/latest`, so the repository must be public). The installer's `preinstall`
 script removes the previous `Stentor.app`, so upgrades are clean.
 
