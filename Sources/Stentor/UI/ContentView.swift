@@ -55,6 +55,7 @@ struct MainView: View {
         }
         .background(Theme.bg)
         .coordinateSpace(name: "root")
+        .overlay { if project.needsModels { ModelSetupView(project: project, installer: project.installer) } }
         .overlay { if window.showAbout { AboutCard(window: window) } }
         .overlay(TipOverlay(tips: tips))
         .environmentObject(tips)

@@ -29,23 +29,23 @@ Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the 
 
 ## Download and install
 
-**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/stentor/releases/latest)** — `Stentor-0.2.0.dmg` (≈ 900 MB, the voice model is included).
+**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/stentor/releases/latest)** — a small DMG; the voice model (≈ 930 MB) is downloaded on first launch.
 
 Requirements: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or newer, ~2 GB free disk space.
 
 1. Open the downloaded `Stentor-<version>.dmg`.
 2. Double-click **Install Stentor** and follow the steps: Welcome → License → Destination → Install (your Mac password is needed to write to Applications) → Summary.
-3. Open **Stentor** from Applications. A public-domain demo recording opens on first launch.
+3. Open **Stentor** from Applications and click **Download** to fetch the voice model (≈ 930 MB, once; verified, kept across updates). A public-domain demo recording opens on first launch.
 
 > **"Install Stentor can't be opened"?** Current builds are not yet signed with an Apple Developer ID.
 > Right-click the installer and choose **Open**, or go to **System Settings › Privacy & Security** and click **Open Anyway**.
 
-The first launch prepares the model for your GPU (about 10 s, once).
+After the download the model is prepared for your GPU (about 10 s, once).
 
 ### Updating
 
 Click the **STENTOR** logo › **Check for Updates** (or Help › Check for Updates…). When a newer version exists,
-download its DMG and run the installer: it replaces the installed app and keeps your settings and model cache.
+download its DMG and run the installer: it replaces the installed app and keeps your settings and the downloaded model.
 
 ## Using Stentor
 
@@ -75,7 +75,7 @@ git clone https://github.com/PaoloSani/stentor.git && cd stentor
 scripts/fetch_models.sh        # Core ML models (~930 MB) into ./Models, checksum-verified
 ./build_app.sh                 # build/Stentor.app
 open build/Stentor.app
-./package.sh                   # build/Stentor-<version>.dmg: guided installer with the models bundled
+./package.sh                   # build/Stentor-<version>.dmg: guided installer (models are downloaded on first launch)
 ```
 
 Developer notes (code layout, headless tests, packaging, signing, releases): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).

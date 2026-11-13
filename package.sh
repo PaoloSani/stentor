@@ -4,7 +4,7 @@
 #
 #   ./package.sh            # -> build/Stentor-<VERSION>.dmg (version from the VERSION file)
 #
-# Needs the Core ML models in ./Models (scripts/fetch_models.sh, or `stentor export coreml` from stentor-engine).
+# The DMG ships without the Core ML models: Stentor downloads them on first launch (release asset "models-1").
 # Unsigned build: see README for Gatekeeper; set SIGN_APP / SIGN_PKG to Developer ID identities to sign.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -15,8 +15,8 @@ OUT=build
 STAGE="$OUT/pkgroot"
 DMGDIR="$OUT/dmg"
 
-echo "==> App with bundled models"
-./build_app.sh --with-models
+echo "==> App (models are downloaded on first launch)"
+./build_app.sh
 if [[ -n "${SIGN_APP:-}" ]]; then
   codesign --force --deep --options runtime --timestamp --sign "$SIGN_APP" "$OUT/Stentor.app"
 fi

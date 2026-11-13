@@ -72,7 +72,10 @@ final class Project: ObservableObject {
 
     @Published var precision: String = UserDefaults.standard.string(forKey: "precision") ?? "float32"
 
-    init(preload: Bool = true) { if preload { preloadModel() } }
+    init(preload: Bool = true) {
+        installer.onInstalled = { [weak self] in self?.modelsInstalled() }
+        if preload { preloadModel() }
+    }
 
     /// Switch float32 / float16 Core ML models (reloads them in the background).
     func setPrecision(_ p: String) {
@@ -350,7 +353,40 @@ final class Project: ObservableObject {
 
     // MARK: - model & processing
 
+    // MARK: voice model installation (first launch)
+
+    /// True when the Core ML models are not on this Mac yet: the setup card offers to download them.
+    @Published var needsModels = false
+    let installer = ModelInstaller()
+
+    func modelsInstalled() {
+        needsModels = false
+        status = "Voice model installed"
+        preloadModel()
+    }
+
+    /// Point Stentor at a folder that already contains the .mlpackage files.
+    func locateModelsFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.message = "Choose the folder containing feature_extractor_float32.mlpackage and decoder_float32.mlpackage"
+        guard panel.runModal() == .OK, let dir = panel.url else { return }
+        let ok = ["feature_extractor", "decoder"].allSatisfy {
+            FileManager.default.fileExists(atPath: dir.appendingPathComponent("\($0)_\(precision).mlpackage").path)
+        }
+        guard ok else { errorMessage = "That folder doesn't contain the Stentor Core ML models."; return }
+        UserDefaults.standard.set(dir.path, forKey: "modelsFolder")
+        modelsInstalled()
+    }
+
     private func preloadModel() {
+        guard SidonModel.locate(precision: precision) != nil else {
+            needsModels = true
+            modelTask = nil
+            modelStatus = "Voice model not installed"
+            return
+        }
         modelStatus = "Loading model…"
         let precision = self.precision
         let task = Task.detached(priority: .utility) { () throws -> SidonModel in
@@ -412,7 +448,7 @@ final class Project: ObservableObject {
                 let model: SidonModel
                 if let m = self.model { model = m } else {
                     status = "Waiting for the model…"
-                    guard let t = modelTask else { processing = false; return }
+                    guard let t = modelTask else { processing = false; status = ""; needsModels = true; return }
                     model = try await t.value
                 }
                 let out = try await Task.detached(priority: .userInitiated) { () throws -> [Float]? in

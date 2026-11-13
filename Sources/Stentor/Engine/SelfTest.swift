@@ -21,6 +21,23 @@ enum SelfTest {
             }
             exit(0)
         }
+        if args.count >= 2, args[1] == "--install-models" {
+            MainActor.assumeIsolated {
+                let inst = ModelInstaller()
+                var last = ""
+                inst.start()
+                let t0 = Date()
+                while Date().timeIntervalSince(t0) < 1200 {
+                    RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+                    let d = "\(inst.phase)".replacingOccurrences(of: #"received: (\d+)\d{6}"#, with: "received: $1 MB", options: .regularExpression)
+                    if d != last && !d.hasPrefix("downloading") || (d.hasPrefix("downloading") && last.prefix(11) != d.prefix(11)) { print(d); last = d }
+                    if case .done = inst.phase { break }
+                    if case .failed = inst.phase { break }
+                }
+                print(String(format: "final: %@ (%.1fs) -> %@", "\(inst.phase)", Date().timeIntervalSince(t0), ModelInstaller.destination.path))
+            }
+            exit(0)
+        }
         if args.count >= 2, args[1] == "--check-updates" {
             MainActor.assumeIsolated {
                 let u = UpdateChecker()
@@ -97,6 +114,7 @@ enum SelfTest {
             if parts[0] == "loop", v.count == 2 { p.loopRange = v[0]...v[1]; p.loopEnabled = true }
         }
         if opts.contains("select") { p.selected = p.regions.first?.id }
+        if opts.contains("setup") { p.needsModels = true }
         p.editorWidth = 1180
         p.requestSpectrogram(sync: true)
         p.player.transport.time = p.visibleStart + p.visibleDuration * 0.4

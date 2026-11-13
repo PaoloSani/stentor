@@ -79,7 +79,10 @@ Release checklist: bump `VERSION`, run `./package.sh`, add a CHANGELOG entry, th
 script removes the previous `Stentor.app`, so upgrades are clean.
 
 The DMG holds `Install Stentor.pkg`, a guided installer (Welcome, License, Destination, Install, Summary) that puts
-`Stentor.app` with its models into /Applications. Signed builds:
+`Stentor.app` into /Applications. The models are not bundled: on first launch `ModelInstaller` downloads the
+`models-1` release asset into `~/Library/Application Support/Stentor/Models` (resume, SHA-256, atomic install).
+When the models change, publish a new `models-N` release and update the URL and checksum in `ModelInstaller.swift`
+and `scripts/fetch_models.sh`. Signed builds:
 
 ```bash
 SIGN_APP="Developer ID Application: …" SIGN_PKG="Developer ID Installer: …" ./package.sh
