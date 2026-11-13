@@ -93,6 +93,15 @@ https://huggingface.co/sarulab-speech/sidon-v0.1 (override the folder with `SIDO
     # 2. enhancement -> recording_enhanced.wav (48 kHz mono, 24-bit)
     .venv/bin/python -m speech_enhancer enhance recording.m4a --segments recording.segments.json
 
+### Graphical interface
+
+    .venv/bin/python -m speech_enhancer gui            # opens http://127.0.0.1:8765 in the browser
+
+Add files or folders (native macOS picker), inspect the waveform with detected speech and
+the VAD curve, drag / add (double-click) / remove (Alt+click) cuts, preview single
+segments, enhance whole files and compare A/B (key `B`) against a level-matched original.
+Outputs go to `~/Desktop/Sidon Output` by default (changeable in Settings).
+
 ### Fast backend: Core ML on the Apple GPU (recommended)
 
 The TorchScript release only runs on CPU. Convert it once to eager PyTorch and then to

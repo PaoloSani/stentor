@@ -197,9 +197,13 @@ def segment_audio(
     params: Optional[SegmentationParams] = None,
     progress: Optional[Callable[[float], None]] = None,
 ) -> Segmentation:
-    params = params or SegmentationParams()
-    duration = wav16k.shape[0] / SR
     probs = vad_probabilities(wav16k, progress)
+    return segment_from_probs(probs, wav16k.shape[0] / SR, params)
+
+
+def segment_from_probs(probs: np.ndarray, duration: float, params: Optional[SegmentationParams] = None) -> Segmentation:
+    """Place cuts from precomputed VAD probabilities (instant: lets the GUI re-segment live)."""
+    params = params or SegmentationParams()
     speech = _speech_regions(probs, params.vad_threshold, params.min_pause_ms / 1000)
 
     # Pauses between speech regions, plus leading/trailing silence.

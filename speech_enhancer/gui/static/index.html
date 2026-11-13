@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sidon Enhancer</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo" aria-hidden="true">◉</span> Sidon Enhancer</div>
+    <div class="model-status" id="modelStatus" title="Model status"></div>
+    <button class="ghost" id="settingsBtn" title="Settings">⚙︎ Settings</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-actions">
+        <button class="primary" id="addFilesBtn">+ File</button>
+        <button id="addFolderBtn">+ Folder</button>
+      </div>
+      <ul class="file-list" id="fileList"></ul>
+      <p class="sidebar-empty" id="sidebarEmpty">Add one or more audio files to get started.<br>Formats: wav, flac, mp3, m4a, aiff…</p>
+    </aside>
+
+    <main class="main" id="main">
+      <section class="empty-state" id="emptyState">
+        <h1>No file selected</h1>
+        <p>Add a file: it is analysed with voice activity detection and split into segments at pauses.
+           You can move, add or remove cuts before enhancing.</p>
+      </section>
+
+      <section class="detail hidden" id="detail">
+        <div class="detail-head">
+          <div>
+            <h1 id="fileName"></h1>
+            <div class="meta" id="fileMeta"></div>
+          </div>
+          <div class="head-actions">
+            <button id="resegmentBtn" title="Recompute cuts with the segmentation settings">↻ Re-segment</button>
+            <button id="revealBtn">Show in Finder</button>
+            <button class="danger-ghost" id="removeBtn" title="Remove from list">Remove</button>
+            <button class="primary" id="enhanceBtn">✦ Enhance</button>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine">
+          <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+          <span id="statusText"></span>
+        </div>
+
+        <div class="transport">
+          <button class="round" id="playBtn" title="Play/Pause (Space)">▶</button>
+          <span class="time" id="timeLabel">0:00.0</span>
+          <div class="ab" role="group" aria-label="Listening source">
+            <button class="ab-btn active" data-src="original">A · Original</button>
+            <button class="ab-btn" data-src="enhanced" disabled>B · Enhanced</button>
+          </div>
+          <label class="zoom">Zoom <input type="range" id="zoom" min="0" max="300" value="0"></label>
+          <span class="hint">Space play · B toggle A/B · drag on empty area = new speech region · drag edges to resize · double-click = cut · S = cut at playhead · Alt+click / Delete removes · ⌘Z undo</span>
+        </div>
+
+        <div class="lane">
+          <div class="lane-label">Original <small>(normalised, mono)</small>
+            <span class="legend"><i class="lg speech"></i>speech (processed) <i class="lg cut"></i>cut
+              <button class="mini-btn" id="resetSpeechBtn" title="Discard manual edits and restore the regions found by the VAD">Reset to VAD</button></span></div>
+          <div id="waveOriginal" class="wave"></div>
+          <canvas id="vadCanvas" class="vad" height="28" title="Speech probability (VAD)"></canvas>
+          <div id="timeline"></div>
+        </div>
+
+        <div class="lane" id="enhancedLane">
+          <div class="lane-label">Enhanced <small>48 kHz mono</small> <span class="badge stale hidden" id="staleBadge">segments changed: re-enhance</span></div>
+          <div id="waveEnhanced" class="wave"></div>
+          <div class="lane-empty" id="enhancedEmpty">Not enhanced yet. Preview a segment or click “Enhance”.</div>
+        </div>
+
+        <div class="segments">
+          <div class="segments-head">
+            <h2>Segments <span class="count" id="segCount"></span></h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Start</th><th>End</th><th>Length</th><th>Speech</th><th class="right">Actions</th></tr></thead>
+              <tbody id="segBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="settingsDlg">
+    <form method="dialog" class="settings">
+      <h2>Settings</h2>
+      <label>Output folder
+        <div class="row"><input type="text" id="setOutput"><button type="button" id="pickOutputBtn">Choose…</button></div>
+      </label>
+      <label>Process
+        <select id="setMode">
+          <option value="speech">Detected speech only · the rest stays silent (faster)</option>
+          <option value="full">Whole file</option>
+        </select>
+      </label>
+      <div class="grid2">
+        <label>Engine
+          <select id="setBackend">
+            <option value="auto">Automatic (Core ML if available)</option>
+            <option value="coreml">Core ML · GPU</option>
+            <option value="torchscript">TorchScript · CPU</option>
+          </select>
+        </label>
+        <label>Precision (Core ML)
+          <select id="setPrecision">
+            <option value="float32">float32 · maximum fidelity</option>
+            <option value="float16">float16 · faster, less memory</option>
+          </select>
+        </label>
+      </div>
+      <fieldset>
+        <legend>Segmentation</legend>
+        <div class="grid3">
+          <label>Target length (s)<input type="number" id="setTarget" min="3" max="25" step="0.5"></label>
+          <label>Maximum (s)<input type="number" id="setMax" min="5" max="25" step="0.5"></label>
+          <label>Minimum (s)<input type="number" id="setMin" min="0.5" max="10" step="0.5"></label>
+        </div>
+        <p class="note">Applied to new files; for the open file use “Re-segment”.
+          Shorter segments are faster (cost grows with the square of the length).</p>
+      </fieldset>
+      <div class="dlg-actions">
+        <button value="cancel">Cancel</button>
+        <button class="primary" value="save" id="saveSettingsBtn">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

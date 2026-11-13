@@ -78,7 +78,10 @@ def cmd_enhance(args) -> None:
     t = time.perf_counter()
     model = SidonModel(backend=args.backend, precision=args.precision, num_threads=threads)
     print(f"Model: {model.description}, loaded in {time.perf_counter() - t:.1f}s")
-    enhancer = Enhancer(model, crossfade_ms=args.crossfade_ms)
+    enhancer = Enhancer(model, crossfade_ms=args.crossfade_ms, speech_only=args.mode == "speech")
+    if args.mode == "speech":
+        work = enhancer.plan(seg, audio.num_samples)[2]
+        print(f"Speech-only mode: {work:.1f}s of {audio.duration:.1f}s sent to the model, the rest stays silent")
 
     def report(p):
         print(
@@ -90,6 +93,12 @@ def cmd_enhance(args) -> None:
 
     stats = enhancer.run(audio, seg, out, subtype=args.subtype, progress=report)
     print(f"\nDone in {_fmt(stats.elapsed_s)} (RTF {stats.rtf:.3f}, {1 / stats.rtf:.1f}x real time) -> {out}")
+
+
+def cmd_gui(args) -> None:
+    from .gui.server import run
+
+    run(port=args.port, open_browser=not args.no_browser, files=args.files)
 
 
 def main(argv=None) -> None:
@@ -115,10 +124,18 @@ def main(argv=None) -> None:
                    help="auto = Core ML on GPU if exported, else TorchScript on CPU")
     e.add_argument("--precision", default="float32", choices=["float32", "float16"], help="Core ML precision")
     e.add_argument("--threads", type=int, default=0, help="CPU threads (default: performance cores)")
+    e.add_argument("--mode", default="speech", choices=["speech", "full"],
+                   help="speech = process only detected speech (rest silent); full = whole file")
     e.add_argument("--crossfade-ms", type=float, default=40.0)
     e.add_argument("--subtype", default="PCM_24", choices=["PCM_16", "PCM_24", "FLOAT"])
     seg_opts(e)
     e.set_defaults(func=cmd_enhance)
+
+    g = sub.add_parser("gui", help="open the local graphical interface in the browser")
+    g.add_argument("files", nargs="*", help="audio files or folders to load at startup")
+    g.add_argument("--port", type=int, default=8765)
+    g.add_argument("--no-browser", action="store_true")
+    g.set_defaults(func=cmd_gui)
 
     args = p.parse_args(argv)
     args.func(args)

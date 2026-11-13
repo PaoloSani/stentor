@@ -5,3 +5,4 @@ soundfile>=0.12
 numpy>=1.26
 silero-vad>=6.0
 coremltools>=8.0  # Core ML GPU backend (export + inference)
+flask>=3.0  # local GUI
