@@ -1,7 +1,28 @@
 #!/bin/sh
-# Clean upgrade: remove the previous Stentor.app so no files from older versions are left inside
-# the bundle. User settings (~/Library/Preferences) and the model cache (~/Library/Application
-# Support/Stentor) are not touched.
+# Clean upgrade: remove the previous Stentor.app so no files from older versions are left inside the
+# bundle. User settings (~/Library/Preferences) and downloaded models
+# (~/Library/Application Support/Stentor/Models) are not touched.
+#
+# Versions up to 0.2.0 carried the voice model inside the app. Before removing such an app, move its
+# models to the user's Application Support folder, where 0.3.0+ looks for them, so the upgrade does
+# not need to download them again. Runs as root: the files are handed to the console user.
 TARGET="${3%/}"
-rm -rf "$TARGET/Applications/Stentor.app"
+APP="$TARGET/Applications/Stentor.app"
+OLD_MODELS="$APP/Contents/Resources/Models"
+
+USER_NAME="$(stat -f %Su /dev/console 2>/dev/null)"
+USER_HOME="${STENTOR_TEST_HOME:-$(dscl . -read "/Users/$USER_NAME" NFSHomeDirectory 2>/dev/null | awk '{print $2}')}"
+
+if [ -d "$OLD_MODELS" ] && [ -n "$USER_NAME" ] && [ "$USER_NAME" != "root" ] && [ -d "$USER_HOME" ]; then
+  DEST="$USER_HOME/Library/Application Support/Stentor/Models"
+  if [ ! -d "$DEST/feature_extractor_float32.mlpackage" ] || [ ! -d "$DEST/decoder_float32.mlpackage" ]; then
+    mkdir -p "$DEST"
+    for pkg in "$OLD_MODELS"/*.mlpackage; do
+      [ -d "$pkg" ] && ditto "$pkg" "$DEST/$(basename "$pkg")"
+    done
+    chown -R "$USER_NAME" "$USER_HOME/Library/Application Support/Stentor"
+  fi
+fi
+
+rm -rf "$APP"
 exit 0
