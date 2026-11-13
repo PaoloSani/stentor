@@ -222,3 +222,9 @@ __marimo__/
 # Generated from the TorchScript release by tools/convert_torchscript.py and tools/export_coreml.py
 sidon_weights/eager/
 sidon_weights/coreml/
+
+# Model weights are downloaded from Hugging Face (tools/download_weights.sh), not tracked
+sidon_weights/*.pt
+# Local test audio
+test_audio.wav
+*.ipynb

@@ -28,7 +28,7 @@ Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the 
 
 ## Download and install
 
-**[⬇︎ Download the latest Stentor DMG](https://github.com/PaoloSani/speech-enhancer/releases/latest)** (≈ 900 MB — the voice model is included).
+**[⬇︎ Download Stentor for macOS](https://github.com/PaoloSani/speech-enhancer/releases/latest)** — `Stentor-0.1.0.dmg` (≈ 900 MB, the voice model is included).
 
 Requirements: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or newer, ~2 GB free disk space.
 
@@ -69,10 +69,8 @@ Everything builds with the Xcode **Command Line Tools** — full Xcode is not re
 /opt/homebrew/bin/python3.12 -m venv .venv
 .venv/bin/pip install -r requirements-mac.txt
 
-# 2. Sidon weights (TorchScript release, MIT) — sidon_weights/ is tracked with Git LFS,
-#    or download feature_extractor_cpu.pt and decoder_cpu.pt from
-#    https://huggingface.co/sarulab-speech/sidon-v0.1 into sidon_weights/
-git lfs pull
+# 2. Sidon weights (TorchScript release, MIT, ~1 GB) from Hugging Face, checksum-verified
+tools/download_weights.sh
 
 # 3. TorchScript -> eager PyTorch -> Core ML (about 2 minutes, ~2 GB, git-ignored)
 .venv/bin/python tools/convert_torchscript.py
@@ -84,7 +82,7 @@ cd mac-app
 ./package.sh                   # build/Stentor-0.1.0.dmg with the guided installer and bundled models
 ```
 
-Publishing a release (maintainers): `gh release create v0.1.0 mac-app/build/Stentor-0.1.0.dmg --title "Stentor 0.1.0"`.
+Publishing a release (maintainers): `gh release create v0.1.0 mac-app/build/Stentor-0.1.0.dmg --title "Stentor 0.1.0" --notes-file CHANGELOG.md`.
 To ship signed builds, set `SIGN_APP` / `SIGN_PKG` to your Developer ID identities when running `package.sh`, then notarize the DMG (`xcrun notarytool submit … --wait` and `xcrun stapler staple`). Details in [mac-app/README.md](mac-app/README.md).
 
 ## How it works
@@ -117,11 +115,19 @@ The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
 
 ### Batch processing on NVIDIA GPUs (Linux)
 
-`enhance_folder.py` and `processor.py` enhance whole folders with the CUDA TorchScript weights
-(`--device`, `--chunk-seconds`, `--num-workers`, `--batch-size`, `--skip-errors`, `--force`; output goes to a sibling
-`audio_48kHz_enh` folder). Environment: Python 3.12 with `torch==2.8.0+cu128` installed first, then
-`uv pip install -r sidon_requirements.txt --no-build-isolation` (needs a CUDA 12.8 driver).
-Note: `sidon_weights/feature_extractor_cuda.pt` in this repository is truncated — re-download it from Hugging Face.
+`enhance_folder.py` and `processor.py` (the original scripts this project started from) enhance whole folders with
+the CUDA TorchScript weights (`--device`, `--chunk-seconds`, `--num-workers`, `--batch-size`, `--skip-errors`,
+`--force`; output goes to a sibling `audio_48kHz_enh` folder).
+
+```bash
+tools/download_weights.sh --cuda
+uv venv envs/db_sidon --python 3.12 && source envs/db_sidon/bin/activate
+uv pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match
+uv pip install -r sidon_requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128 --index-strategy unsafe-best-match --no-build-isolation
+```
+
+Requires an NVIDIA driver with CUDA 12.8; `torch` must be installed before `flash-attn` builds. These scripts expect to live in an
+`enhance_audio/` package (weights at `enhance_audio/sidon_weights/`).
 
 ## Repository layout
 
@@ -131,10 +137,11 @@ mac-app/              Stentor, the native macOS app (SwiftUI + Core ML)
   Installer/          guided installer pages, license and artwork
   Resources/          app icon and the public-domain demo recording
 speech_enhancer/      Python reference engine, CLI and web GUI
-tools/                TorchScript -> eager PyTorch -> Core ML conversion
-sidon_weights/        Sidon TorchScript weights (Git LFS); generated eager/ and coreml/ are git-ignored
+tools/                weight download and TorchScript -> eager PyTorch -> Core ML conversion
+sidon_weights/        model weights (downloaded, git-ignored), plus generated eager/ and coreml/
 docs/                 images for this README
 processor.py, enhance_folder.py   original CUDA batch scripts
+CHANGELOG.md          release notes
 ```
 
 ## Roadmap

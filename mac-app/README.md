@@ -1,55 +1,82 @@
-# Stentor — native macOS app (v0.1)
+# Stentor for macOS — developer guide
 
-Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the Iliad whose voice was as loud as fifty men.
-Powered by the Sidon speech-restoration model.
+SwiftUI + Core ML app. For what Stentor does, downloads and usage, see the [main README](../README.md).
 
-SwiftUI + Core ML port of the Python pipeline. Only the green speech regions are restored;
-everything else stays digital silence and the output keeps the original length (48 kHz / 24-bit WAV).
+## Prerequisites
 
-## Build (Command Line Tools are enough, no Xcode)
+- Apple Silicon Mac, macOS 14+, Xcode **Command Line Tools** (`xcode-select --install`) — full Xcode is not needed.
+- Core ML models exported from the repository root:
 
-    ./build_app.sh                 # build/Stentor.app, models read from ../sidon_weights/coreml
-    ./build_app.sh --with-models   # standalone: copies the float32 .mlpackage files into the bundle
+```bash
+tools/download_weights.sh
+.venv/bin/python tools/convert_torchscript.py
+.venv/bin/python tools/export_coreml.py      # -> sidon_weights/coreml/*.mlpackage
+```
 
-Models are searched in `$SIDON_MODELS_DIR`, the bundle's `Resources/Models`,
-`~/Library/Application Support/Stentor/Models` and `../sidon_weights/coreml`
-(export them with `tools/export_coreml.py`). They are compiled once and cached in Application Support.
+Without Xcode the SwiftUI macro plug-ins are unavailable, so the code avoids `@State` and `@Observable`
+(it uses `@StateObject` / `ObservableObject` instead).
 
-## Editing
+## Build and run
 
-| Action | How |
-|---|---|
-| Add a region | click empty space → region up to just before the next one (or the end); drag to draw one |
-| Adjust | drag a green bar |
-| Remove | hover the top of a bar and click ✕, or ⌘-click a bar/region, or select + Delete |
-| Seek / loop | click the ruler to seek, drag on it to set a loop range; L toggles looping |
-| Navigate | vertical scroll / pinch = zoom at pointer, horizontal scroll = pan, overview strip |
-| Listen | Space play/pause · B toggles A (original, level-matched) / B (enhanced) · S wave/spectrogram |
-| Process | ⌘↩ Enhance · ⌘E Export · ⌘Z / ⇧⌘Z undo/redo · ⇧⌘D re-detect speech |
+```bash
+./build_app.sh                 # build/Stentor.app; models are read from ../sidon_weights/coreml
+./build_app.sh --with-models   # standalone bundle with the float32 models in Contents/Resources/Models
+open build/Stentor.app
+```
 
-## Engine checks against the Python reference
+Models are looked up in `$SIDON_MODELS_DIR`, `Contents/Resources/Models`,
+`~/Library/Application Support/Stentor/Models` and `../sidon_weights/coreml`; they are compiled on first use and
+cached in `~/Library/Application Support/Stentor/Compiled`.
 
-    .build/release/Stentor --fbank in.f32 out.f32        # features: max abs diff 3e-4
-    .build/release/Stentor --enhance-raw in.f32 out.f32  # model output: 81.6 dB SNR vs Python Core ML
-    .build/release/Stentor --process in.wav out.wav      # full pipeline
-    .build/release/Stentor --logic in.wav                # editing rules + looped playback
+## Code layout
 
-## Packaging (DMG with a guided installer)
+```
+Sources/Stentor/
+  App.swift              app, menus and keyboard shortcuts
+  Engine/
+    AudioIO.swift        loading (AVFoundation), resampling, high-pass, WAV writing
+    Fbank.swift          Kaldi fbank features (Accelerate), port of speech_enhancer/features.py
+    SidonModel.swift     Core ML feature predictor + windowed vocoder, CPU fallback
+    Regions.swift        speech detection and the region renderer (fixed-length model calls)
+    SelfTest.swift       headless checks and UI snapshots
+  UI/
+    Project.swift        document state: regions, undo, playback, incremental rendering, export
+    EditorView.swift     waveform / spectrogram canvas, region editing (NSView events), playhead
+    ControlBar.swift     floating control island and overview strip
+    Header.swift         wordmark, about card, settings panel
+    Theme.swift          adaptive colours (dark / light / auto)
+    Tips.swift           detailed hover help
+    Visuals.swift        waveform peaks and visible-window spectrogram
+    Player.swift         AVAudioEngine playback with seamless looping
+Resources/               app icon (+ make_icon.swift) and the demo recording
+Installer/               installer pages, license, artwork (+ make_art.swift), Distribution.xml
+```
 
-    ./package.sh                   # -> build/Stentor-0.1.0.dmg  (~900 MB, models included)
+## Headless checks
 
-The DMG contains `Install Stentor.pkg`, a standard macOS installer with Welcome, License,
-Destination, Install and Summary steps; it installs `Stentor.app` into /Applications.
-Artwork: `Resources/make_icon.swift` (app icon) and `Installer/make_art.swift` (installer and DMG
-backgrounds); installer pages are in `Installer/resources/`.
+```bash
+B=.build/release/Stentor
+$B --fbank in.f32 out.f32          # features vs Python: max abs diff 3e-4
+$B --enhance-raw in.f32 out.f32    # model output vs Python Core ML: 81.6 dB SNR
+$B --process in.wav out.wav        # full pipeline, prints regions, speed and CPU fallbacks
+$B --logic in.wav                  # region editing rules, undo/redo, looped playback (muted)
+$B --incremental in.wav            # per-region re-rendering leaves untouched regions bit-identical
+$B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25   # render the UI to PNG
+```
 
-### Installing (users)
+## Packaging
 
-1. Open `Stentor-0.1.0.dmg` and double-click **Install Stentor**.
-2. Follow the steps (Continue → Agree → Install, then your Mac password).
-3. Launch **Stentor** from Applications.
+```bash
+./package.sh                   # build/Stentor-<version>.dmg (VERSION=0.1.0 by default)
+```
 
-Until builds are signed with an Apple Developer ID and notarized, macOS blocks the installer the
-first time: right-click it and choose **Open** (or System Settings › Privacy & Security › Open Anyway).
-To sign: `SIGN_APP="Developer ID Application: …" SIGN_PKG="Developer ID Installer: …" ./package.sh`,
-then notarize with `xcrun notarytool submit build/Stentor-0.1.0.dmg --wait` and `xcrun stapler staple`.
+The DMG holds `Install Stentor.pkg`, a guided installer (Welcome, License, Destination, Install, Summary) that puts
+`Stentor.app` with its models into /Applications. Signed builds:
+
+```bash
+SIGN_APP="Developer ID Application: …" SIGN_PKG="Developer ID Installer: …" ./package.sh
+xcrun notarytool submit build/Stentor-0.1.0.dmg --keychain-profile <profile> --wait
+xcrun stapler staple build/Stentor-0.1.0.dmg
+```
+
+Unsigned builds work, but macOS asks users to confirm the first launch of the installer (right-click › Open).
