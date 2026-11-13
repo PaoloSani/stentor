@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+  <title>Stentor</title>
+  <welcome file="welcome.html" mime-type="text/html"/>
+  <license file="license.txt"/>
+  <conclusion file="conclusion.html" mime-type="text/html"/>
+  <background file="background.png" alignment="bottomleft" scaling="proportional"/>
+  <background-darkAqua file="background.png" alignment="bottomleft" scaling="proportional"/>
+  <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
+  <domains enable_localSystem="true"/>
+  <volume-check>
+    <allowed-os-versions><os-version min="14.0"/></allowed-os-versions>
+  </volume-check>
+  <choices-outline>
+    <line choice="default"><line choice="local.stentor"/></line>
+  </choices-outline>
+  <choice id="default"/>
+  <choice id="local.stentor" visible="false"><pkg-ref id="local.stentor"/></choice>
+  <pkg-ref id="local.stentor" version="__VERSION__" onConclusion="none">Stentor-component.pkg</pkg-ref>
+</installer-gui-script>
