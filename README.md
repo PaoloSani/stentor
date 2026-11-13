@@ -26,6 +26,7 @@ Named after [Stentor](https://en.wikipedia.org/wiki/Stentor), the herald of the 
 - **Fast and private** — Core ML on the Apple GPU, nothing leaves your computer. On an M1 (8 GB): ~3–5× real time, about 1 GB of memory.
 - Dark / light / auto theme, detailed hover help, adjustable icon size.
 - WAV export (16/24-bit, 32-bit float; 48 kHz or source rate): the whole file, or each speech region as its own file plus a CSV of start/end times (`⇧⌘E`).
+- Small installer: the voice model is downloaded once on first launch; Check for Updates is built in.
 
 ## Download and install
 
@@ -41,6 +42,10 @@ Requirements: Apple Silicon Mac (M1 or later), macOS 14 Sonoma or newer, ~2 GB f
 > Right-click the installer and choose **Open**, or go to **System Settings › Privacy & Security** and click **Open Anyway**.
 
 After the download the model is prepared for your GPU (about 10 s, once).
+
+**Download blocked (offline, proxy, firewall)?** Get `Stentor-CoreML-float32.zip` from the
+[models release](https://github.com/PaoloSani/stentor/releases/tag/models-1), unzip it anywhere, then click
+**Locate Models…** in Stentor and choose that folder.
 
 ### Updating
 
@@ -106,13 +111,19 @@ The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
 Sources/Stentor/      the app: Engine/ (audio I/O, fbank, Core ML model, regions) and UI/ (SwiftUI)
 Resources/            app icon (+ generator) and the public-domain demo recording
 Installer/            guided installer pages, license, artwork, preinstall script
-scripts/              fetch_models.sh
+scripts/              fetch_models.sh (Core ML models for source builds)
 build_app.sh          builds build/Stentor.app
 package.sh            builds the DMG with the guided installer
 VERSION               app version (Info.plist and package)
 docs/                 developer guide and README images
 CHANGELOG.md          release notes
 ```
+
+## Feedback and contributing
+
+Ideas and bug reports are welcome: **Help › Send Feedback…** in the app, or [open an issue](https://github.com/PaoloSani/stentor/issues).
+For code changes, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — the headless checks there validate the engine against the
+reference before a pull request.
 
 ## Roadmap
 

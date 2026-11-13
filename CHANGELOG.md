@@ -3,6 +3,7 @@
 ## Stentor 0.3.0 (unreleased)
 
 - Much smaller download: the DMG no longer bundles the voice model. On first launch Stentor downloads it (about 930 MB, once) with progress, resume and SHA-256 verification; updates keep it. **Locate Models…** uses a folder that already has the models.
+- Upgrading from 0.2.0 keeps the model: the installer moves it out of the old app instead of downloading it again.
 - The repository now contains only the app (renamed to `stentor`); the Python engine lives in stentor-engine.
 
 ## Stentor 0.2.0

@@ -36,13 +36,17 @@ cached in `~/Library/Application Support/Stentor/Compiled`.
 Sources/Stentor/
   App.swift              app, menus and keyboard shortcuts
   Engine/
+    ModelInstaller.swift first-launch download of the Core ML models (resume, SHA-256, atomic install)
     AudioIO.swift        loading (AVFoundation), resampling, high-pass, WAV writing
     Fbank.swift          Kaldi fbank features (Accelerate), port of the stentor-engine fbank
     SidonModel.swift     Core ML feature predictor + windowed vocoder, CPU fallback
     Regions.swift        speech detection and the region renderer (fixed-length model calls)
     SelfTest.swift       headless checks and UI snapshots
   UI/
+    ContentView.swift    window layout (header, editor, island, overlays), drag & drop
     Project.swift        document state: regions, undo, playback, incremental rendering, export
+    ModelSetupView.swift first-launch card that downloads the voice model
+    Updater.swift        Check for Updates (GitHub releases/latest)
     EditorView.swift     waveform / spectrogram canvas, region editing (NSView events), playhead
     ControlBar.swift     floating control island and overview strip
     Header.swift         wordmark, about card, settings panel
@@ -64,7 +68,10 @@ $B --enhance-raw in.f32 out.f32    # model output vs Python Core ML: 81.6 dB SNR
 $B --process in.wav out.wav        # full pipeline, prints regions, speed and CPU fallbacks
 $B --logic in.wav                  # region editing rules, undo/redo, looped playback (muted)
 $B --incremental in.wav            # per-region re-rendering leaves untouched regions bit-identical
-$B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25   # render the UI to PNG
+$B --export-regions in.wav outdir/ # one WAV per region + CSV (add source-rate for the input sample rate)
+$B --install-models                # run the model installer (STENTOR_MODELS_URL / STENTOR_MODELS_DEST override)
+$B --check-updates                 # query the latest release (STENTOR_VERSION_OVERRIDE / STENTOR_UPDATE_API override)
+$B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25 [setup|about|toast]   # render the UI to PNG
 ```
 
 ## Packaging
@@ -76,7 +83,8 @@ $B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25   # 
 Release checklist: bump `VERSION`, run `./package.sh`, add a CHANGELOG entry, then
 `gh release create v<version> build/Stentor-<version>.dmg --title "Stentor <version>" --notes-file …`. Installed apps find it through
 **Check for Updates** (GitHub `releases/latest`, so the repository must be public). The installer's `preinstall`
-script removes the previous `Stentor.app`, so upgrades are clean.
+script removes the previous `Stentor.app`, so upgrades are clean; if that app still carries the models (0.2.0 and
+earlier), it first moves them to the user's `~/Library/Application Support/Stentor/Models`.
 
 The DMG holds `Install Stentor.pkg`, a guided installer (Welcome, License, Destination, Install, Summary) that puts
 `Stentor.app` into /Applications. The models are not bundled: on first launch `ModelInstaller` downloads the
