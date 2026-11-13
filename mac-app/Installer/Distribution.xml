@@ -4,8 +4,8 @@
   <welcome file="welcome.html" mime-type="text/html"/>
   <license file="license.txt"/>
   <conclusion file="conclusion.html" mime-type="text/html"/>
-  <background file="background.png" alignment="bottomleft" scaling="proportional"/>
-  <background-darkAqua file="background.png" alignment="bottomleft" scaling="proportional"/>
+  <background file="background.tiff" alignment="bottomleft" scaling="none"/>
+  <background-darkAqua file="background.tiff" alignment="bottomleft" scaling="none"/>
   <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
   <domains enable_localSystem="true"/>
   <volume-check>

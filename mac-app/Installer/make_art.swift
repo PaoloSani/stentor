@@ -10,16 +10,18 @@ struct Mark: View {
     var body: some View {
         VStack(spacing: size * 0.12) {
             Image(nsImage: icon).resizable().frame(width: size * 1.6, height: size * 1.6)
+            // solid jade: readable on both the light and the dark Installer window
             Text("STENTOR").font(.custom("Didot-Bold", size: size * 0.42)).tracking(size * 0.1)
-                .foregroundStyle(LinearGradient(colors: [mint, green], startPoint: .top, endPoint: .bottom))
+                .foregroundStyle(Color(red: 0.30, green: 0.62, blue: 0.47))
         }
     }
 }
 
-/// Installer.app left panel art (transparent, bottom-left aligned).
+/// Installer.app side art: a compact mark shown unscaled in the bottom-left corner, below the
+/// list of steps (Introduction, License, Destination, Installation Type, Installation, Summary).
 struct SideArt: View {
     var body: some View {
-        VStack { Spacer(); Mark(size: 90).padding(.bottom, 28) }.frame(width: 170, height: 418)
+        Mark(size: 46).frame(width: 150, height: 120, alignment: .bottom).padding(.bottom, 4)
     }
 }
 
@@ -59,7 +61,8 @@ struct DMGBackground: View {
 
 MainActor.assumeIsolated {
     let dir = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "Installer"
-    save(SideArt(), "\(dir)/resources/background.png", scale: 2, opaque: false)
+    save(SideArt(), "\(dir)/side-art.png", scale: 1, opaque: false)
+    save(SideArt(), "\(dir)/side-art@2x.png", scale: 2, opaque: false)
     save(DMGBackground(), "\(dir)/dmg-background.png", scale: 1, opaque: true)
     save(DMGBackground(), "\(dir)/dmg-background@2x.png", scale: 2, opaque: true)
 }
