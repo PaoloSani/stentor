@@ -110,7 +110,7 @@ The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
 
 ```
 apps/macos/           the macOS app: SwiftUI + Core ML (Sources/, Installer/, build_app.sh, package.sh)
-apps/desktop/         the Windows and Linux app, in progress: PySide6 + ONNX Runtime (with a vendored, PyTorch-free engine)
+apps/desktop/         the Windows and Linux app (PySide6 + ONNX Runtime, vendored PyTorch-free engine); installers coming
 assets/               shared by all apps: icon master and the public-domain demo recording
 VERSION               version of every app and release
 docs/                 README images
@@ -125,7 +125,7 @@ reference before a pull request.
 
 ## Roadmap
 
-- Windows and Linux app (in progress in `apps/desktop`: Qt, ONNX Runtime with DirectML / CUDA / CPU).
+- Windows and Linux installers for the Qt app in `apps/desktop` (ONNX Runtime with DirectML / CUDA / CPU).
 - Neural voice activity detection (Silero) for noisy or reverberant material.
 - Signed and notarized releases.
 

@@ -7,7 +7,8 @@ build/
 .swiftpm/
 
 # Core ML models (apps/macos/scripts/fetch_models.sh, ~1 GB)
-Models/
+/apps/macos/Models/
+/Models/
 
 # Local files that are not part of the app
 .venv/
