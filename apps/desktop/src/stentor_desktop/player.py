@@ -7,6 +7,39 @@ import threading
 import numpy as np
 
 
+def _bundled_portaudio() -> None:
+    """Frozen Linux builds ship libportaudio.so.2; make sounddevice find it (it only asks ctypes.util.find_library)."""
+    import ctypes.util
+    import os
+    import sys
+
+    base = getattr(sys, "_MEIPASS", None)
+    if not base or not sys.platform.startswith("linux"):
+        return
+    lib = next((os.path.join(base, n) for n in ("libportaudio.so.2", "libportaudio.so") if os.path.exists(os.path.join(base, n))), None)
+    if lib is None:
+        return
+    original = ctypes.util.find_library
+
+    def find_library(name):
+        return lib if name == "portaudio" else original(name)
+
+    ctypes.util.find_library = find_library
+
+
+_SD = None
+
+
+def _sounddevice():
+    global _SD
+    if _SD is None:
+        _bundled_portaudio()
+        import sounddevice
+
+        _SD = sounddevice
+    return _SD
+
+
 class Player:
     def __init__(self):
         self._lock = threading.Lock()
@@ -83,8 +116,7 @@ class Player:
         if self._stream is not None:
             return
         try:
-            import sounddevice as sd
-
+            sd = _sounddevice()
             self._stream = sd.OutputStream(
                 samplerate=self.rate, channels=2, dtype="float32", latency="low",
                 callback=self._callback, finished_callback=self._finished,
@@ -119,7 +151,7 @@ class Player:
         self._stream = None
 
     def _callback(self, out, frames, _time, _status) -> None:
-        import sounddevice as sd
+        sd = _sounddevice()
 
         with self._lock:
             x, n = self.signal, self.signal.shape[0]

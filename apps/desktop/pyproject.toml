@@ -17,13 +17,16 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "soundfile>=0.12",
-    "onnxruntime>=1.18",
+    # Windows: the DirectML build runs on any DirectX 12 GPU (and falls back to the CPU)
+    "onnxruntime>=1.18; sys_platform != 'win32'",
+    "onnxruntime-directml>=1.18; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]
-directml = ["onnxruntime-directml>=1.18"]  # Windows GPUs (replaces the CPU onnxruntime wheel)
-cuda = ["onnxruntime-gpu>=1.18"]           # NVIDIA GPUs
-dev = ["pytest>=8", "ruff>=0.6", "pyinstaller>=6.6"]
+# NVIDIA GPUs on Linux: `pip uninstall onnxruntime` first (the two wheels provide the same module)
+cuda = ["onnxruntime-gpu>=1.18"]
+dev = ["pytest>=8", "ruff>=0.6"]
+build = ["pyinstaller>=6.10", "pillow>=10"]  # pillow: PNG -> .ico for the Windows icon
 
 [project.gui-scripts]
 stentor-desktop = "stentor_desktop.__main__:main"

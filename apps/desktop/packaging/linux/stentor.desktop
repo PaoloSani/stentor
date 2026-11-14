@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Stentor
+GenericName=Voice restoration
+Comment=Restore noisy, reverberant or band-limited speech with the Sidon model
+Exec=Stentor %f
+Icon=stentor
+Terminal=false
+Categories=AudioVideo;Audio;AudioVideoEditing;
+MimeType=audio/wav;audio/x-wav;audio/flac;audio/mpeg;audio/mp4;audio/x-m4a;audio/ogg;audio/aac;
+StartupWMClass=Stentor

@@ -3,6 +3,7 @@
     python -m stentor_desktop --process in.wav out.wav        full pipeline with the ONNX model
     python -m stentor_desktop --logic in.wav                  region editing rules, undo / redo, incremental rendering
     python -m stentor_desktop --export-regions in.wav dir/    one WAV per region + CSV (needs the model)
+    python -m stentor_desktop --bundle-check report.txt [out.png]  a built app has every runtime piece (CI)
     python -m stentor_desktop --snapshot in.wav out.png [enhanced] [spec] [zoom=a-b] [loop=a-b] [select]
                               [theme=light|dark] [scale=1.25] [tour=N] [about] [setup] [settings] [tip=name] [empty]
 """
@@ -14,7 +15,7 @@ import sys
 import time
 from pathlib import Path
 
-FLAGS = ("--process", "--logic", "--export-regions", "--snapshot")
+FLAGS = ("--process", "--logic", "--export-regions", "--snapshot", "--bundle-check")
 
 
 def run_if_requested(argv: list[str]) -> int | None:
@@ -23,7 +24,8 @@ def run_if_requested(argv: list[str]) -> int | None:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     flag, args = argv[0], argv[1:]
     try:
-        return {"--process": process, "--logic": logic, "--export-regions": export_regions, "--snapshot": snapshot}[flag](args)
+        return {"--process": process, "--logic": logic, "--export-regions": export_regions, "--snapshot": snapshot,
+                "--bundle-check": bundle_check}[flag](args)
     except AssertionError as exc:
         print(f"FAILED: {exc}")
         return 1
@@ -233,3 +235,85 @@ def snapshot(args: list[str]) -> int:
     img.save(args[1])
     print(f"snapshot -> {args[1]} ({img.width()}x{img.height()})")
     return 0
+
+
+def bundle_check(args: list[str]) -> int:
+    """Everything a packaged build needs, without a voice model or a display; writes a report (GUI builds have no console)."""
+    import platform
+    import traceback
+
+    lines: list[str] = []
+    ok = True
+
+    def step(name, fn):
+        nonlocal ok
+        try:
+            lines.append(f"ok    {name}: {fn()}")
+        except Exception as exc:
+            ok = False
+            lines.append(f"FAIL  {name}: {exc.__class__.__name__}: {exc}")
+            lines.append(traceback.format_exc())
+
+    from . import __version__, models
+    from .project import demo_path
+
+    lines.append(f"Stentor {__version__} on {platform.platform()} (frozen={getattr(sys, 'frozen', False)})")
+
+    def ort():
+        import onnxruntime
+
+        return f"{onnxruntime.__version__}, providers {onnxruntime.get_available_providers()}"
+
+    def scipy_():
+        import scipy.signal
+
+        return scipy.signal.lfilter([1.0], [1.0], [1.0, 2.0]).tolist()
+
+    def portaudio():
+        from .player import _sounddevice
+
+        sd = _sounddevice()
+        try:
+            devs = len(sd.query_devices())
+        except Exception as exc:  # CI machines have no sound card
+            devs = f"none ({exc})"
+        return f"PortAudio {sd.get_portaudio_version()[1]}, devices: {devs}"
+
+    def demo():
+        from . import core
+
+        path = demo_path()
+        assert path is not None, "demo recording not bundled"
+        a = core.load(path)
+        regions = core.detect(a.wav16k)
+        out = __import__("numpy").zeros(a.wav16k.shape[0] * 3, "float32")
+        core.Renderer(_FakeModel()).render_regions(a, regions, out)
+        return f"{path.name}: {a.duration:.1f} s at {a.source_rate} Hz, {len(regions)} regions rendered (fake model)"
+
+    def ui():
+        from .project import Project
+        from .window import MainWindow
+
+        app = _app()
+        p = Project(preload=False)
+        win = MainWindow(p)
+        win.resize(1180, 640)
+        win.show()
+        p.load_sync(demo_path())
+        for _ in range(5):
+            app.processEvents()
+        if len(args) > 1:
+            win.grab().save(args[1])
+        return f"window {win.width()}x{win.height()}, platform {app.platformName()}"
+
+    step("onnxruntime", ort)
+    step("devices", lambda: models.available_devices())
+    step("scipy", scipy_)
+    step("PortAudio", portaudio)
+    step("demo + renderer", demo)
+    step("window", ui)
+    text = "\n".join(lines) + f"\n{'PASSED' if ok else 'FAILED'}\n"
+    print(text)
+    if args:
+        Path(args[0]).write_text(text, encoding="utf-8")
+    return 0 if ok else 1

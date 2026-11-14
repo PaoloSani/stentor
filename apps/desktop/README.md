@@ -6,15 +6,15 @@ detailed hover help and the guided tour. The Sidon model runs on ONNX Runtime: D
 DirectX 12 GPU, with the `directml` extra), CUDA on NVIDIA (`cuda` extra), otherwise the CPU. No PyTorch.
 For what Stentor does, see the [main README](../../README.md).
 
-**Status:** feature-complete and tested headless on macOS (CPU). Not yet run on real Windows or Linux machines;
-installers come next (PyInstaller, built by GitHub Actions).
+**Status:** feature-complete; tested on macOS from source and as a PyInstaller build (CPU). Windows and Linux
+builds come from GitHub Actions (see Packaging) and have not yet been tried on real machines.
 
 ## Setup
 
 ```bash
 cd apps/desktop
 python3 -m venv .venv
-.venv/bin/pip install -e ".[dev]"            # Windows: .venv\Scripts\pip install -e ".[dev]"
+.venv/bin/pip install -e ".[dev]"            # Windows: .venv\Scripts\pip install -e ".[dev]" (DirectML build of onnxruntime)
 .venv/bin/python -m stentor_desktop          # or: .venv/bin/python -m stentor_desktop talk.wav
 ```
 
@@ -67,6 +67,32 @@ Exporters, the PyTorch / Core ML backends and the experiments stay in stentor-en
 
 `STENTOR_DEVICE=cpu|dml|cuda` forces the device for `--process`. Settings are stored with QSettings
 (registry on Windows, `~/.config/Stentor/Stentor.conf` on Linux).
+
+## Packaging
+
+[`.github/workflows/desktop.yml`](../../.github/workflows/desktop.yml) runs on every push that touches the app:
+lint and tests, a PyInstaller build, `--bundle-check` on the built executable (onnxruntime, SciPy, PortAudio,
+the bundled demo and the window), then
+
+- Windows: `Stentor-<version>-Windows-Setup.exe` (Inno Setup; per-user install, no administrator rights, in-place
+  upgrades that keep settings and the model) and a portable zip;
+- Linux: `Stentor-<version>-x86_64.AppImage` (built on Ubuntu 22.04 for older glibc) and a `.tar.gz`.
+
+They are uploaded as workflow artifacts. Running the workflow by hand with a `release_tag` attaches them to that
+existing GitHub release. Locally:
+
+```bash
+.venv/bin/pip install -e ".[build]"
+.venv/bin/python packaging/make_icons.py                                  # .ico / .png from assets/AppIcon-1024.png
+.venv/bin/pyinstaller --noconfirm --distpath build/dist --workpath build/work packaging/stentor.spec
+build/dist/Stentor/Stentor --bundle-check build/check.txt                 # every runtime piece is in the bundle
+iscc /DAppVersion=$(cat ../../VERSION) packaging/windows/stentor.iss      # Windows, Inno Setup 6
+packaging/linux/make_appimage.sh $(cat ../../VERSION) path/to/appimagetool  # Linux
+```
+
+The voice model is not bundled (≈ 1 GB): the app downloads it on first launch once the `models-onnx-1` release
+asset exists, or uses **Locate Models…**. Builds are not code-signed yet, so Windows SmartScreen asks for
+confirmation (More info › Run anyway). Linux desktops need the usual X11/Wayland libraries (`libxcb-cursor0` for Qt).
 
 The shared demo recording and icon master live in [`assets/`](../../assets); the version comes from the
 repository's `VERSION` file.
