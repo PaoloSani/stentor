@@ -25,8 +25,10 @@ The voice model is two ONNX files, `feature_extractor.onnx` and `decoder.onnx` (
 `$STENTOR_MODELS_DIR`, the folder chosen with **Locate Models…**, the per-user data folder
 (`%LOCALAPPDATA%\Stentor\ONNX`, `~/.local/share/stentor/ONNX`), stentor-engine's export folder
 (`$STENTOR_WEIGHTS_DIR/onnx`, default `~/.cache/stentor/weights/onnx`) and, in a checkout, `sidon_weights/onnx`.
-To produce them: `stentor weights download`, then `stentor export onnx` in stentor-engine. Once they are published
-as a release asset, set `MODELS_SHA256` in `models.py` and the first-launch card offers **Download**.
+On first launch the app downloads them (the [models-onnx-1](https://github.com/PaoloSani/stentor/releases/tag/models-onnx-1)
+release asset, 933 MB, resumable, SHA-256 verified). To regenerate them: `stentor weights download`, then
+`stentor export onnx` in stentor-engine; when they change, publish a new `models-onnx-N` release and update the
+tag and checksum in `models.py`.
 
 ## Layout
 
@@ -90,8 +92,7 @@ iscc /DAppVersion=$(cat ../../VERSION) packaging/windows/stentor.iss      # Wind
 packaging/linux/make_appimage.sh $(cat ../../VERSION) path/to/appimagetool  # Linux
 ```
 
-The voice model is not bundled (≈ 1 GB): the app downloads it on first launch once the `models-onnx-1` release
-asset exists, or uses **Locate Models…**. Builds are not code-signed yet, so Windows SmartScreen asks for
+The voice model is not bundled (≈ 1 GB): the app downloads it on first launch, or uses **Locate Models…**. Builds are not code-signed yet, so Windows SmartScreen asks for
 confirmation (More info › Run anyway). Linux desktops need the usual X11/Wayland libraries (`libxcb-cursor0` for Qt).
 
 The shared demo recording and icon master live in [`assets/`](../../assets); the version comes from the

@@ -15,14 +15,14 @@ from pathlib import Path
 
 FILES = ("feature_extractor.onnx", "decoder.onnx")
 
-# Release asset with the two ONNX files at the root of the zip. SHA256 is filled in when it is published;
-# while it is empty the setup card offers only "Locate Models…".
+# Release asset with the two ONNX files at the root of the zip (933 MB). When the models change, publish a
+# new models-onnx-N release and update the tag and checksum here.
 MODELS_TAG = "models-onnx-1"
 MODELS_ZIP = "Stentor-ONNX-float32.zip"
 MODELS_URL = os.environ.get(
     "STENTOR_MODELS_URL", f"https://github.com/PaoloSani/stentor/releases/download/{MODELS_TAG}/{MODELS_ZIP}"
 )
-MODELS_SHA256 = os.environ.get("STENTOR_MODELS_SHA256", "")
+MODELS_SHA256 = os.environ.get("STENTOR_MODELS_SHA256", "d1380e711d02ea1c9de097c56f8c13fd4ceac37194a2171b79592f1c2829f9b7")
 
 
 def data_dir() -> Path:
