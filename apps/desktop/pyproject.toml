@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "stentor-desktop"
+dynamic = ["version"]
+description = "Stentor for Windows and Linux: voice restoration with Sidon on ONNX Runtime, Qt interface"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Paolo Sani" }]
+dependencies = [
+    "PySide6-Essentials>=6.7",
+    # src/stentor is a vendored, PyTorch-free copy of stentor-engine (scripts/vendor_engine.sh); its runtime needs:
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "soundfile>=0.12",
+    "onnxruntime>=1.18",
+]
+
+[project.optional-dependencies]
+directml = ["onnxruntime-directml>=1.18"]  # Windows GPUs (replaces the CPU onnxruntime wheel)
+cuda = ["onnxruntime-gpu>=1.18"]           # NVIDIA GPUs
+dev = ["pytest>=8", "ruff>=0.6", "pyinstaller>=6.6"]
+
+[project.gui-scripts]
+stentor-desktop = "stentor_desktop.__main__:main"
+
+[tool.hatch.version]
+path = "../../VERSION"
+pattern = "(?P<version>.+)"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stentor_desktop", "src/stentor"]
+
+[tool.ruff]
+line-length = 125
+extend-exclude = ["src/stentor"]  # vendored: linted in stentor-engine
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

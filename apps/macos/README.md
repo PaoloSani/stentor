@@ -1,11 +1,12 @@
 # Stentor for macOS — developer guide
 
-SwiftUI + Core ML app. For what Stentor does, downloads and usage, see the [README](../README.md).
+SwiftUI + Core ML app in `apps/macos`; run the commands below from this folder. For what Stentor does, downloads
+and usage, see the [main README](../../README.md). The Windows / Linux app is in [`apps/desktop`](../desktop/README.md).
 
 ## Prerequisites
 
 - Apple Silicon Mac, macOS 14+, Xcode **Command Line Tools** (`xcode-select --install`) — full Xcode is not needed.
-- The Core ML models in `./Models`:
+- The Core ML models in `apps/macos/Models`:
 
 ```bash
 scripts/fetch_models.sh          # release asset "models-1", ~930 MB, SHA-256 verified
@@ -55,7 +56,8 @@ Sources/Stentor/
     Tour.swift           guided tour: anchors on UI parts, spotlight overlay, step cards
     Visuals.swift        waveform peaks and visible-window spectrogram
     Player.swift         AVAudioEngine playback with seamless looping
-Resources/               app icon (+ make_icon.swift) and the demo recording
+Resources/               app icon (.icns + make_icon.swift)
+../../assets/            shared by all apps: icon master (AppIcon-1024.png) and the demo recording
 scripts/fetch_models.sh  downloads the Core ML models
 Installer/               installer pages, license, artwork (+ make_art.swift), Distribution.xml
 ```
@@ -79,11 +81,11 @@ $B --snapshot in.wav out.png spec enhanced zoom=0-25 theme=light scale=1.25 [set
 ## Packaging
 
 ```bash
-./package.sh                   # build/Stentor-<version>.dmg; the version comes from VERSION
+./package.sh                   # build/Stentor-<version>.dmg; the version comes from the repository's VERSION file
 ```
 
-Release checklist: bump `VERSION`, run `./package.sh`, add a CHANGELOG entry, then
-`gh release create v<version> build/Stentor-<version>.dmg --title "Stentor <version>" --notes-file …`. Installed apps find it through
+Release checklist: bump `VERSION` (repository root), run `./package.sh`, add a CHANGELOG entry, then
+`gh release create v<version> apps/macos/build/Stentor-<version>.dmg --title "Stentor <version>" --notes-file …`. Installed apps find it through
 **Check for Updates** (GitHub `releases/latest`, so the repository must be public). The installer's `preinstall`
 script removes the previous `Stentor.app`, so upgrades are clean; if that app still carries the models (0.2.0 and
 earlier), it first moves them to the user's `~/Library/Application Support/Stentor/Models`.

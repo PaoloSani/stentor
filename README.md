@@ -76,14 +76,15 @@ A guided tour runs after the first model download (replay it from **Help › Sho
 Builds with the Xcode **Command Line Tools** (`xcode-select --install`); full Xcode is not required.
 
 ```bash
-git clone https://github.com/PaoloSani/stentor.git && cd stentor
+git clone https://github.com/PaoloSani/stentor.git && cd stentor/apps/macos
 scripts/fetch_models.sh        # Core ML models (~930 MB) into ./Models, checksum-verified
 ./build_app.sh                 # build/Stentor.app
 open build/Stentor.app
 ./package.sh                   # build/Stentor-<version>.dmg: guided installer (models are downloaded on first launch)
 ```
 
-Developer notes (code layout, headless tests, packaging, signing, releases): [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Developer notes (code layout, headless tests, packaging, signing, releases): [apps/macos/README.md](apps/macos/README.md).
+The Windows and Linux app (Qt, ONNX Runtime) is being built in [apps/desktop](apps/desktop/README.md).
 
 ## How it works
 
@@ -108,26 +109,23 @@ The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
 ## Repository layout
 
 ```
-Sources/Stentor/      the app: Engine/ (audio I/O, fbank, Core ML model, regions) and UI/ (SwiftUI)
-Resources/            app icon (+ generator) and the public-domain demo recording
-Installer/            guided installer pages, license, artwork, preinstall script
-scripts/              fetch_models.sh (Core ML models for source builds)
-build_app.sh          builds build/Stentor.app
-package.sh            builds the DMG with the guided installer
-VERSION               app version (Info.plist and package)
-docs/                 developer guide and README images
+apps/macos/           the macOS app: SwiftUI + Core ML (Sources/, Installer/, build_app.sh, package.sh)
+apps/desktop/         the Windows and Linux app, in progress: PySide6 + ONNX Runtime (with a vendored, PyTorch-free engine)
+assets/               shared by all apps: icon master and the public-domain demo recording
+VERSION               version of every app and release
+docs/                 README images
 CHANGELOG.md          release notes
 ```
 
 ## Feedback and contributing
 
 Ideas and bug reports are welcome: **Help › Send Feedback…** in the app, or [open an issue](https://github.com/PaoloSani/stentor/issues).
-For code changes, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — the headless checks there validate the engine against the
+For code changes, see [apps/macos/README.md](apps/macos/README.md) — the headless checks there validate the engine against the
 reference before a pull request.
 
 ## Roadmap
 
-- Native builds for Windows and Linux (ONNX Runtime: DirectML / CUDA / CPU).
+- Windows and Linux app (in progress in `apps/desktop`: Qt, ONNX Runtime with DirectML / CUDA / CPU).
 - Neural voice activity detection (Silero) for noisy or reverberant material.
 - Signed and notarized releases.
 

@@ -6,7 +6,7 @@
 build/
 .swiftpm/
 
-# Core ML models (downloaded with scripts/fetch_models.sh, ~1 GB)
+# Core ML models (apps/macos/scripts/fetch_models.sh, ~1 GB)
 Models/
 
 # Local files that are not part of the app
@@ -14,3 +14,10 @@ Models/
 sidon_weights/
 test_audio.wav
 *.ipynb
+
+# Desktop app (Python)
+__pycache__/
+*.egg-info/
+dist/
+.ruff_cache/
+.pytest_cache/

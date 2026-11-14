@@ -1,5 +1,6 @@
 // Renders the Stentor app icon (1024 px master) and the .icns via iconutil.
-//   swift Resources/make_icon.swift Resources
+//   cd apps/macos && swift Resources/make_icon.swift Resources && iconutil -c icns Resources/Stentor.iconset
+//   then move Resources/AppIcon-1024.png to ../../assets (the master shared by all apps)
 import AppKit
 import SwiftUI
 

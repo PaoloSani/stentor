@@ -5,14 +5,14 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION="$(cat VERSION)"   # single source of the app version
+VERSION="$(cat ../../VERSION)"   # single source of the version, shared by all apps
 swift build -c release
 APP="build/Stentor.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp .build/release/Stentor "$APP/Contents/MacOS/Stentor"
 cp Resources/Stentor.icns "$APP/Contents/Resources/Stentor.icns"
-cp -R Resources/Demo "$APP/Contents/Resources/Demo"
+cp -R ../../assets/Demo "$APP/Contents/Resources/Demo"   # shared with the desktop app
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>

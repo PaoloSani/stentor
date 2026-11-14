@@ -119,13 +119,13 @@ final class Project: ObservableObject {
 
     static let demoName = "JFK - Rice University 1962 (excerpt)"
 
-    /// The bundled public-domain demo (Resources/Demo), also found next to a development build.
+    /// The bundled public-domain demo (Contents/Resources/Demo), or <repo>/assets/Demo next to a development build.
     static var demoURL: URL? {
         if let u = Bundle.main.url(forResource: demoName, withExtension: "m4a", subdirectory: "Demo") { return u }
         var p = Bundle.main.bundleURL
-        for _ in 0..<4 {
+        for _ in 0..<6 {
             p = p.deletingLastPathComponent()
-            let u = p.appendingPathComponent("Resources/Demo/\(demoName).m4a")
+            let u = p.appendingPathComponent("assets/Demo/\(demoName).m4a")
             if FileManager.default.fileExists(atPath: u.path) { return u }
         }
         return nil

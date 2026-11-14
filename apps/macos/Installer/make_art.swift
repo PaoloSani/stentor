@@ -1,9 +1,9 @@
-// Installer side art and DMG window background.  swift Installer/make_art.swift Installer
+// Installer side art and DMG window background.  cd apps/macos && swift Installer/make_art.swift Installer
 import AppKit
 import SwiftUI
 
 let mint = Color(red: 0.80, green: 0.93, blue: 0.86), green = Color(red: 0.40, green: 0.74, blue: 0.58)
-let icon = NSImage(contentsOfFile: "Resources/AppIcon-1024.png")!
+let icon = NSImage(contentsOfFile: "../../assets/AppIcon-1024.png")!
 
 struct Mark: View {
     var size: CGFloat

@@ -2,14 +2,14 @@
 # Build the distributable "Stentor-<version>.dmg": a disk image with a guided installer
 # (Welcome -> License -> Destination -> Install -> Summary), plugin-style.
 #
-#   ./package.sh            # -> build/Stentor-<VERSION>.dmg (version from the VERSION file)
+#   ./package.sh            # -> build/Stentor-<VERSION>.dmg (version from the repository's VERSION file)
 #
 # The DMG ships without the Core ML models: Stentor downloads them on first launch (release asset "models-1").
 # Unsigned build: see README for Gatekeeper; set SIGN_APP / SIGN_PKG to Developer ID identities to sign.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION="${VERSION:-$(cat VERSION)}"
+VERSION="${VERSION:-$(cat ../../VERSION)}"
 ID="local.stentor"
 OUT=build
 STAGE="$OUT/pkgroot"
