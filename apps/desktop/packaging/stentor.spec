@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs, copy_metadata
 
 HERE = Path(SPECPATH)
 APP = HERE.parent
@@ -20,6 +20,7 @@ datas = [
     (str(APP / "src" / "stentor" / "LICENSE"), "licenses/stentor-engine"),
 ]
 binaries = collect_dynamic_libs("onnxruntime")
+datas += copy_metadata("stentor-desktop")  # importlib.metadata.version(): the version shown and checked for updates
 datas += collect_data_files("onnxruntime", includes=["capi/*.dll", "capi/*.so*", "capi/*.dylib"])
 
 if sys.platform.startswith("linux"):

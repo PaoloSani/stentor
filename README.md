@@ -2,8 +2,8 @@
 
 <h1 align="center">Stentor</h1>
 
-<p align="center"><b>Studio-quality voice restoration for macOS, running entirely on your Mac.</b><br>
-A native app built on <a href="https://github.com/sarulab-speech/Sidon">Sidon</a>, the open-source speech restoration model from the University of Tokyo.</p>
+<p align="center"><b>Studio-quality voice restoration for macOS, Windows and Linux, running entirely on your computer.</b><br>
+A desktop app built on <a href="https://github.com/sarulab-speech/Sidon">Sidon</a>, the open-source speech restoration model from the University of Tokyo.</p>
 
 <p align="center"><img src="docs/stentor-dark.jpg" alt="Stentor — enhanced speech in the spectrogram view, dark theme"></p>
 
@@ -47,6 +47,17 @@ After the download the model is prepared for your GPU (about 10 s, once).
 [models release](https://github.com/PaoloSani/stentor/releases/tag/models-1), unzip it anywhere, then click
 **Locate Models…** in Stentor and choose that folder.
 
+### Windows and Linux
+
+**[⬇︎ Download Stentor for Windows or Linux](https://github.com/PaoloSani/stentor/releases/latest)**: same features, running on ONNX Runtime (a DirectX 12 GPU through DirectML on Windows, otherwise the CPU).
+
+- **Windows 10/11 (64-bit):** run `Stentor-<version>-Windows-Setup.exe` (installs for your user, no administrator rights needed), or unzip the portable `Stentor-<version>-Windows-portable.zip`. The installer is not code-signed yet, so SmartScreen may show *Windows protected your PC*: click **More info › Run anyway**.
+- **Linux (x86-64):** `chmod +x Stentor-<version>-x86_64.AppImage` and run it.
+
+On first launch click **Download** to fetch the voice model (≈ 930 MB, once). Offline? Get it from the
+[models-onnx-1 release](https://github.com/PaoloSani/stentor/releases/tag/models-onnx-1) and use **Locate Models…**.
+Details: [apps/desktop/README.md](apps/desktop/README.md).
+
 ### Updating
 
 Click the **STENTOR** logo › **Check for Updates** (or Help › Check for Updates…). When a newer version exists,
@@ -84,7 +95,7 @@ open build/Stentor.app
 ```
 
 Developer notes (code layout, headless tests, packaging, signing, releases): [apps/macos/README.md](apps/macos/README.md).
-The Windows and Linux app (Qt, ONNX Runtime) is being built in [apps/desktop](apps/desktop/README.md).
+The Windows and Linux app (Qt, ONNX Runtime) lives in [apps/desktop](apps/desktop/README.md).
 
 ## How it works
 
@@ -110,7 +121,7 @@ The Neural Engine is not used: its fp16 arithmetic audibly degrades the vocoder.
 
 ```
 apps/macos/           the macOS app: SwiftUI + Core ML (Sources/, Installer/, build_app.sh, package.sh)
-apps/desktop/         the Windows and Linux app (PySide6 + ONNX Runtime, vendored PyTorch-free engine); installers coming
+apps/desktop/         the Windows and Linux app (PySide6 + ONNX Runtime, vendored PyTorch-free engine)
 assets/               shared by all apps: icon master and the public-domain demo recording
 VERSION               version of every app and release
 docs/                 README images
@@ -125,7 +136,6 @@ reference before a pull request.
 
 ## Roadmap
 
-- Windows and Linux installers for the Qt app in `apps/desktop` (ONNX Runtime with DirectML / CUDA / CPU).
 - Neural voice activity detection (Silero) for noisy or reverberant material.
 - Signed and notarized releases.
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## Stentor 0.4.0
+
+- **Stentor for Windows and Linux.** A new desktop app with the same features as the Mac version: editable speech regions, waveform and spectrogram views, incremental Enhance, A/B comparison, looping, whole-file or per-region export, settings, hover help and the guided tour. It runs Sidon with ONNX Runtime: on any DirectX 12 GPU through DirectML on Windows, otherwise on the CPU.
+  - Windows 10/11 (64-bit): `Stentor-0.4.0-Windows-Setup.exe` (installs for your user, no administrator needed) or the portable `Stentor-0.4.0-Windows-portable.zip`.
+  - Linux (x86-64): `Stentor-0.4.0-x86_64.AppImage`.
+  - On first launch it downloads the voice model (about 930 MB, once, SHA-256 verified) from the `models-onnx-1` release.
+  - First release on these platforms: builds are tested automatically but have had little real-world use, so please report problems.
+- The repository is now organised as `apps/macos` and `apps/desktop`, sharing one version number. The Mac app is unchanged.
+
 ## Stentor 0.3.1
 
 - First launch is calmer: the model download screen shows no tooltips, and nothing underneath reacts to the mouse.

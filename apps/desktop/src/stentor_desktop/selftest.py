@@ -258,6 +258,9 @@ def bundle_check(args: list[str]) -> int:
     from .project import demo_path
 
     lines.append(f"Stentor {__version__} on {platform.platform()} (frozen={getattr(sys, 'frozen', False)})")
+    if getattr(sys, "frozen", False) and __version__ == "0.0.0":
+        ok = False
+        lines.append("FAIL  version: package metadata not bundled (Check for Updates would always offer one)")
 
     def ort():
         import onnxruntime
